@@ -29,8 +29,8 @@ public class Client {
             // Adjust node configurations for correct port
             setNodePorts(nodeConfigs);
 
-            // ClientService clientService = new ClientService();
-            // clientService.listen();
+            ClientService clientService = new ClientService(clientConfig, nodeConfigs);
+            clientService.listen();
 
             System.out.println("--- HDS Serenity Ledger Client ---");
             System.out.println("Client with id " + id);
@@ -50,7 +50,8 @@ public class Client {
                     case "append":
                         if (commandAndArgument.length == 2) {
                             String appendString = commandAndArgument[1];
-                            System.out.println("String appended: " + appendString);
+                            String response = clientService.requestAppend(appendString);
+                            System.out.println("String appended: " + response);
                         } else {
                             System.out.println("Invalid append command. Usage: append <string>");
                         }
@@ -87,7 +88,7 @@ public class Client {
     // Function to set node ports
     private static void setNodePorts(ProcessConfig[] nodeConfigs) {
         for (ProcessConfig nodeConfig : nodeConfigs) {
-            nodeConfig.setPort(nodeConfig.getPort());
+            nodeConfig.setPort(nodeConfig.getClientPort());
         }
     }
 }

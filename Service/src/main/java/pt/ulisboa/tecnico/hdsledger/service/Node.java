@@ -1,8 +1,10 @@
 package pt.ulisboa.tecnico.hdsledger.service;
 
+import pt.ulisboa.tecnico.hdsledger.communication.AppendRequest;
 import pt.ulisboa.tecnico.hdsledger.communication.ConsensusMessage;
 import pt.ulisboa.tecnico.hdsledger.communication.Link;
 import pt.ulisboa.tecnico.hdsledger.service.services.NodeService;
+import pt.ulisboa.tecnico.hdsledger.service.services.SerenityLedgerService;
 import pt.ulisboa.tecnico.hdsledger.utilities.CustomLogger;
 import pt.ulisboa.tecnico.hdsledger.utilities.ProcessConfig;
 import pt.ulisboa.tecnico.hdsledger.utilities.ProcessConfigBuilder;
@@ -17,6 +19,8 @@ public class Node {
     // Hardcoded path to files
     private static String nodesConfigPath = "src/main/resources/";
 
+    private static String clientsConfigPath = "../Client/src/main/resources/client_config.json";
+
     public static void main(String[] args) {
 
         try {
@@ -28,8 +32,9 @@ public class Node {
             ProcessConfig[] nodeConfigs = new ProcessConfigBuilder().fromFile(nodesConfigPath);
             ProcessConfig leaderConfig = Arrays.stream(nodeConfigs).filter(ProcessConfig::isLeader).findAny().get();
             ProcessConfig nodeConfig = Arrays.stream(nodeConfigs).filter(c -> c.getId().equals(id)).findAny().get();
+            ProcessConfig[] clients = new ProcessConfigBuilder().fromFile(clientsConfigPath);
 
-            LOGGER.log(Level.INFO, MessageFormat.format("{0} - Running at {1}:{2}; is leader: {3}",
+            LOGGER.log(Level.INFO, MessageFormat.format("{0} - Running at {1}:{2,number,#}; is leader: {3}",
                     nodeConfig.getId(), nodeConfig.getHostname(), nodeConfig.getPort(),
                     nodeConfig.isLeader()));
 
@@ -37,11 +42,16 @@ public class Node {
             Link linkToNodes = new Link(nodeConfig, nodeConfig.getPort(), nodeConfigs,
                     ConsensusMessage.class);
 
+            Link linkToClients = new Link(nodeConfig, nodeConfig.getClientPort(), clients, AppendRequest.class);
+
             // Services that implement listen from UDPService
             NodeService nodeService = new NodeService(linkToNodes, nodeConfig, leaderConfig,
                     nodeConfigs);
 
+            SerenityLedgerService serenityLedgerService = new SerenityLedgerService(id, clients, nodeService, linkToClients);
+
             nodeService.listen();
+            serenityLedgerService.listen();
 
         } catch (Exception e) {
             e.printStackTrace();

@@ -11,6 +11,8 @@ public class ProcessConfig {
 
     private int port;
 
+    private int clientPort;
+
     public boolean isLeader() {
         return isLeader;
     }
@@ -31,5 +33,8 @@ public class ProcessConfig {
         return hostname;
     }
 
+    public int getClientPort() {
+        return clientPort;
+    }
 
 }
