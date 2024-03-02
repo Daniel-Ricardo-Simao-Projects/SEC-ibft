@@ -5,7 +5,6 @@ import json
 import sys
 import signal
 
-
 # Terminal Emulator used to spawn the processes
 terminal = "kitty"
 
@@ -34,6 +33,16 @@ with open(f"Service/src/main/resources/{server_config}") as f:
         if pid == 0:
             os.system(
                 f"{terminal} sh -c \"cd Service; mvn exec:java -Dexec.args='{key['id']} {server_config}' ; sleep 500\"")
+            sys.exit()
+
+with open("Client/src/main/resources/client_config.json") as f:
+    data = json.load(f)
+    processes = list()
+    for key in data:
+        pid = os.fork()
+        if pid == 0:
+            os.system(
+                f"{terminal} sh -c \"cd Client; mvn exec:java -Dexec.args='{key['id']} {server_config}' ; sleep 1000\"")
             sys.exit()
 
 signal.signal(signal.SIGINT, quit_handler)
