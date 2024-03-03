@@ -70,4 +70,8 @@ public class ConsensusMessage extends Message {
     public void setReplyToMessageId(int replyToMessageId) {
         this.replyToMessageId = replyToMessageId;
     }
+
+    public void setDigitalSignature(byte[] digitalSignature) {
+        super.setSignature(digitalSignature);
+    }
 }

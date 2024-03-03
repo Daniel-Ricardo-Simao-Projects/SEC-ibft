@@ -21,6 +21,7 @@ import pt.ulisboa.tecnico.hdsledger.service.models.InstanceInfo;
 import pt.ulisboa.tecnico.hdsledger.service.models.MessageBucket;
 import pt.ulisboa.tecnico.hdsledger.utilities.CustomLogger;
 import pt.ulisboa.tecnico.hdsledger.utilities.ProcessConfig;
+import pt.ulisboa.tecnico.hdsledger.utilities.Authenticate;
 
 public class NodeService implements UDPService {
 
@@ -81,13 +82,14 @@ public class NodeService implements UDPService {
         return this.leaderConfig.getId().equals(id);
     }
  
-    public ConsensusMessage createConsensusMessage(String value, int instance, int round) {
+    public ConsensusMessage createConsensusMessage(String value, int instance, int round, byte[] digitalSignature) {
         PrePrepareMessage prePrepareMessage = new PrePrepareMessage(value);
 
         ConsensusMessage consensusMessage = new ConsensusMessageBuilder(config.getId(), Message.Type.PRE_PREPARE)
                 .setConsensusInstance(instance)
                 .setRound(round)
                 .setMessage(prePrepareMessage.toJson())
+                .setDigitalSignature(digitalSignature)
                 .build();
 
         return consensusMessage;
@@ -128,7 +130,15 @@ public class NodeService implements UDPService {
             InstanceInfo instance = this.instanceInfo.get(localConsensusInstance);
             LOGGER.log(Level.INFO,
                 MessageFormat.format("{0} - Node is leader, sending PRE-PREPARE message", config.getId()));
-            this.link.broadcast(this.createConsensusMessage(value, localConsensusInstance, instance.getCurrentRound()));
+            // Create digital signature
+            byte[] digitalSignature = null;
+            try {
+                String path = "../Utilities/keys/" + config.getId() + "Priv.key";
+                digitalSignature = Authenticate.createDigitalSignature(value, Authenticate.readPrivateKey(path));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            this.link.broadcast(this.createConsensusMessage(value, localConsensusInstance, instance.getCurrentRound(), digitalSignature));
         } else {
             LOGGER.log(Level.INFO,
                     MessageFormat.format("{0} - Node is not leader, waiting for PRE-PREPARE message", config.getId()));
@@ -160,6 +170,23 @@ public class NodeService implements UDPService {
         // Verify if pre-prepare was sent by leader
         if (!isLeader(senderId))
             return;
+
+        try {
+            byte[] signature = message.getSignature();
+            String path = "../Utilities/keys/" + senderId + "Pub.key";
+            System.out.println("Public Key to verify: " + path);
+            boolean valid = Authenticate.verifyDigitalSignature(value, signature, Authenticate.readPublicKey(path));
+
+            if (!valid) {
+                LOGGER.log(Level.INFO, MessageFormat.format("{0} - Invalid signature from {1}", config.getId(), senderId));
+                return;
+            } else {
+                LOGGER.log(Level.INFO, MessageFormat.format("{0} - Valid signature from {1}", config.getId(), senderId));
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         // Set instance value
         this.instanceInfo.putIfAbsent(consensusInstance, new InstanceInfo(value));

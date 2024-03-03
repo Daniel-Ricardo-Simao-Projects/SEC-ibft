@@ -35,6 +35,11 @@ public class ConsensusMessageBuilder {
         return this;
     }
 
+    public ConsensusMessageBuilder setDigitalSignature(byte[] digitalSignature) {
+        instance.setDigitalSignature(digitalSignature);
+        return this;
+    }
+
     public ConsensusMessage build() {
         return instance;
     }
