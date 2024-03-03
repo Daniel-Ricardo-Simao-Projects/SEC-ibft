@@ -24,13 +24,23 @@ def quit_handler(*args):
 # Compile classes
 os.system("mvn clean install")
 
+# Clean up previous Keys
+os.system("rm -rf Utilities/keys/")
+os.system("mkdir Utilities/keys/")
+
 # Spawn blockchain nodes
 with open(f"Service/src/main/resources/{server_config}") as f:
     data = json.load(f)
     processes = list()
+    os.system("javac -d Utilities/out Utilities/src/main/java/pt/ulisboa/tecnico/hdsledger/utilities/RSAKeyGenerator.java")
     for key in data:
         pid = os.fork()
         if pid == 0:
+            config_id = key['id']
+            priv_key_path = f"Utilities/keys/{config_id}Priv.key"
+            pub_key_path = f"Utilities/keys/{config_id}Pub.key"
+            os.system(f"java -cp Utilities/out pt.ulisboa.tecnico.hdsledger.utilities.RSAKeyGenerator {priv_key_path} {pub_key_path}")
+
             os.system(
                 f"{terminal} sh -c \"cd Service; mvn exec:java -Dexec.args='{key['id']} {server_config}' ; sleep 500\"")
             sys.exit()

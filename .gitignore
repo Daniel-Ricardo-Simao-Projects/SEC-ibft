@@ -5,3 +5,5 @@
 *.classpath
 *.settings/
 HDSLedger.iml
+Utilities/keys/
+Utilities/out/
