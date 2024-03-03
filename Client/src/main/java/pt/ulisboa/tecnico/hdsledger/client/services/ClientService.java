@@ -8,9 +8,7 @@ import pt.ulisboa.tecnico.hdsledger.utilities.*;
 
 import java.io.IOException;
 import java.text.MessageFormat;
-import java.util.*;
 import java.util.logging.Level;
-import java.util.logging.LogManager;
 import java.util.concurrent.atomic.AtomicInteger;
 public class ClientService {
 
