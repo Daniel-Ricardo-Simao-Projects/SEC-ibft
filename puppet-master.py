@@ -42,7 +42,7 @@ with open(f"Service/src/main/resources/{server_config}") as f:
             os.system(f"java -cp Utilities/out pt.ulisboa.tecnico.hdsledger.utilities.RSAKeyGenerator {priv_key_path} {pub_key_path}")
 
             os.system(
-                f"{terminal} sh -c \"cd Service; mvn exec:java -Dexec.args='{key['id']} {server_config}' ; sleep 500\"")
+                f"{terminal} > /dev/null 2>&1 sh -c \"cd Service; mvn exec:java -Dexec.args='{key['id']} {server_config}' ; sleep 500\"")
             sys.exit()
 
 with open("Client/src/main/resources/client_config.json") as f:
@@ -52,7 +52,7 @@ with open("Client/src/main/resources/client_config.json") as f:
         pid = os.fork()
         if pid == 0:
             os.system(
-                f"{terminal} sh -c \"cd Client; mvn exec:java -Dexec.args='{key['id']} {server_config}' ; sleep 1000\"")
+                f"{terminal} > /dev/null 2>&1 sh -c \"cd Client; mvn exec:java -Dexec.args='{key['id']} {server_config}' ; sleep 1000\"")
             sys.exit()
 
 signal.signal(signal.SIGINT, quit_handler)
@@ -60,5 +60,5 @@ signal.signal(signal.SIGINT, quit_handler)
 while True:
     print("Type quit to quit")
     command = input(">> ")
-    if command.strip() == "quit":
+    if command.strip() == "quit" or command.strip() == "q":
         quit_handler()
