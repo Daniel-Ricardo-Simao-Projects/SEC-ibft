@@ -27,7 +27,7 @@ public class RSAKeyGenerator {
 
         write(pubkeyPath, privkeyPath);
 
-        System.out.println("Key pair generated successfully.");
+        // System.out.println("Key pair generated successfully.");
     }
 
     public static void write(String publicKeyPath, String privateKeyPath) throws GeneralSecurityException, IOException {
