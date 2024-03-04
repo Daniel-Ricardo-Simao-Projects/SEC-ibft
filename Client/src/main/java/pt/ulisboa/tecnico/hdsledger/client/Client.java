@@ -4,6 +4,7 @@ import pt.ulisboa.tecnico.hdsledger.client.services.ClientService;
 import pt.ulisboa.tecnico.hdsledger.utilities.ProcessConfig;
 import pt.ulisboa.tecnico.hdsledger.utilities.ProcessConfigBuilder;
 
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Client {
@@ -46,8 +47,8 @@ public class Client {
                     case "append":
                         if (commandAndArgument.length == 2) {
                             String appendString = commandAndArgument[1];
-                            String response = clientService.requestAppend(appendString);
-                            System.out.println("String appended: " + response);
+                            ArrayList<String> response = clientService.requestAppend(appendString);
+                            System.out.println("String appended: " + String.join("", response));
                         } else {
                             System.out.println("Invalid append command. Usage: append <string>");
                         }

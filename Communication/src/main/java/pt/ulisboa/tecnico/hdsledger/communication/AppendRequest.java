@@ -19,4 +19,12 @@ public class AppendRequest extends Message {
     public void setStringToAppend(String stringToAppend) {
         this.stringToAppend = stringToAppend;
     }
+
+    public int getRequestId() {
+        return requestId;
+    }
+
+    public void setRequestId(int requestId) {
+        this.requestId = requestId;
+    }
 }
