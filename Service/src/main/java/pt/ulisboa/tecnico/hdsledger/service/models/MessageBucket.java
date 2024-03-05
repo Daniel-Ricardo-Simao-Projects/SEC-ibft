@@ -78,7 +78,25 @@ public class MessageBucket {
         }).findFirst();
     }
 
-    public Optional<Integer> hasValidRoundChangeQuorum(String nodeId, int instance, int currentRound) {
+    public Optional<String> hasValidRoundChangeQuorum(String nodeId, int instance, int round) {
+        // Create mapping of value to frequency
+        HashMap<String, Integer> frequency = new HashMap<>();
+        bucket.get(instance).get(round).values().forEach((message) -> {
+            RoundChangeMessage roundChangeMessage = message.deserializeRoundChangeMessage();
+            String value = roundChangeMessage.getPreparedValue();
+            frequency.put(value, frequency.getOrDefault(value, 0) + 1);
+        });
+
+        // Only one value (if any, thus the optional) will have a frequency
+        // greater than or equal to the quorum size
+        return frequency.entrySet().stream().filter((Map.Entry<String, Integer> entry) -> {
+            return entry.getValue() >= quorumSize;
+        }).map((Map.Entry<String, Integer> entry) -> {
+            return entry.getKey();
+        }).findFirst();
+    }
+
+    public Optional<Integer> findSmallestValidRoundChange(String nodeId, int instance, int currentRound) {
         // Create mapping of round to frequency
         HashMap<Integer, Integer> frequency = new HashMap<>();
 

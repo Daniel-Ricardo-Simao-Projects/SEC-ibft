@@ -11,6 +11,7 @@ public class InstanceInfo {
     private CommitMessage commitMessage;
     private String inputValue;
     private int committedRound = -1;
+    private boolean timerRunning = false;
 
     public InstanceInfo(String inputValue) {
         this.inputValue = inputValue;
@@ -63,4 +64,8 @@ public class InstanceInfo {
     public void setCommitMessage(CommitMessage commitMessage) {
         this.commitMessage = commitMessage;
     }
+
+    public boolean isTimerRunning() { return timerRunning; }
+
+    public void setTimerRunning(boolean timerRunning) { this.timerRunning = timerRunning; }
 }
