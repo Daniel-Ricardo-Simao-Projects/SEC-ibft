@@ -10,12 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 
-import pt.ulisboa.tecnico.hdsledger.communication.CommitMessage;
-import pt.ulisboa.tecnico.hdsledger.communication.ConsensusMessage;
-import pt.ulisboa.tecnico.hdsledger.communication.Link;
-import pt.ulisboa.tecnico.hdsledger.communication.Message;
-import pt.ulisboa.tecnico.hdsledger.communication.PrePrepareMessage;
-import pt.ulisboa.tecnico.hdsledger.communication.PrepareMessage;
+import pt.ulisboa.tecnico.hdsledger.communication.*;
 import pt.ulisboa.tecnico.hdsledger.communication.builder.ConsensusMessageBuilder;
 import pt.ulisboa.tecnico.hdsledger.service.models.InstanceInfo;
 import pt.ulisboa.tecnico.hdsledger.service.models.MessageBucket;
@@ -366,6 +361,24 @@ public class NodeService implements UDPService {
         }
     }
 
+
+    public synchronized void uponRoundChange(ConsensusMessage message) {
+
+        int consensusInstance = message.getConsensusInstance();
+        int round = message.getRound();
+        String senderId = message.getSenderId();
+
+        RoundChangeMessage roundChangeMessage = message.deserializeRoundChangeMessage();
+
+        int preparedRound = roundChangeMessage.getPreparedRound();
+        String preparedValue = roundChangeMessage.getPreparedValue();
+
+        LOGGER.log(Level.INFO,
+                MessageFormat.format("{0} - Received ROUND CHANGE message from {1}: Consensus Instance {2}, Round {3}",
+                        config.getId(), message.getSenderId(), consensusInstance, round));
+
+    }
+
     @Override
     public void listen() {
         try {
@@ -391,6 +404,9 @@ public class NodeService implements UDPService {
                                 case COMMIT ->
                                     uponCommit((ConsensusMessage) message);
 
+
+                                case ROUND_CHANGE ->
+                                    uponRoundChange((ConsensusMessage) message);
 
                                 case ACK ->
                                     LOGGER.log(Level.INFO, MessageFormat.format("{0} - Received ACK message from {1}",

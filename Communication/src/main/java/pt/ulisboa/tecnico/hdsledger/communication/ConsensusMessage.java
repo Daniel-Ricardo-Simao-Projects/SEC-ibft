@@ -12,7 +12,7 @@ public class ConsensusMessage extends Message {
     private String replyTo;
     // Id of the previous message
     private int replyToMessageId;
-    // Message (PREPREPARE, PREPARE, COMMIT)
+    // Message (PREPREPARE, PREPARE, COMMIT, ROUNDCHANGE)
     private String message;
 
     public ConsensusMessage(String senderId, Type type) {
@@ -29,6 +29,10 @@ public class ConsensusMessage extends Message {
 
     public CommitMessage deserializeCommitMessage() {
         return new Gson().fromJson(this.message, CommitMessage.class);
+    }
+
+    public RoundChangeMessage deserializeRoundChangeMessage() {
+        return new Gson().fromJson(this.message, RoundChangeMessage.class);
     }
 
     public String getMessage() {

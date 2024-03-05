@@ -8,18 +8,21 @@ import java.util.concurrent.ConcurrentHashMap;
 import pt.ulisboa.tecnico.hdsledger.communication.CommitMessage;
 import pt.ulisboa.tecnico.hdsledger.communication.ConsensusMessage;
 import pt.ulisboa.tecnico.hdsledger.communication.PrepareMessage;
+import pt.ulisboa.tecnico.hdsledger.communication.RoundChangeMessage;
 import pt.ulisboa.tecnico.hdsledger.utilities.CustomLogger;
 
 public class MessageBucket {
 
     private static final CustomLogger LOGGER = new CustomLogger(MessageBucket.class.getName());
+    // Number of support faulty nodes
+    private final int f;
     // Quorum size
     private final int quorumSize;
     // Instance -> Round -> Sender ID -> Consensus message
     private final Map<Integer, Map<Integer, Map<String, ConsensusMessage>>> bucket = new ConcurrentHashMap<>();
 
     public MessageBucket(int nodeCount) {
-        int f = Math.floorDiv(nodeCount - 1, 3);
+        f = Math.floorDiv(nodeCount - 1, 3);
         quorumSize = Math.floorDiv(nodeCount + f, 2) + 1;
     }
 
@@ -74,6 +77,28 @@ public class MessageBucket {
             return entry.getKey();
         }).findFirst();
     }
+
+    public Optional<Integer> hasValidRoundChangeQuorum(String nodeId, int instance, int currentRound) {
+        // Create mapping of round to frequency
+        HashMap<Integer, Integer> frequency = new HashMap<>();
+
+        bucket.get(instance).forEach((round, roundMessages) -> {
+            if (round > currentRound) {
+                roundMessages.values().forEach((message) -> {
+                    RoundChangeMessage roundChangeMessage = message.deserializeRoundChangeMessage();
+                    int receivedRound = roundChangeMessage.getPreparedRound();
+                    frequency.put(receivedRound, frequency.getOrDefault(receivedRound, 0) + 1);
+                });
+            }
+        });
+
+        // Find the smallest round with a frequency greater than or equal to f + 1
+        return frequency.entrySet().stream()
+                .filter((Map.Entry<Integer, Integer> entry) -> entry.getValue() >= f + 1)
+                .map(Map.Entry::getKey)
+                .min(Integer::compareTo);
+    }
+
 
     public Map<String, ConsensusMessage> getMessages(int instance, int round) {
         return bucket.get(instance).get(round);
