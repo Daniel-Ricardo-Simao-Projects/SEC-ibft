@@ -12,6 +12,11 @@ import java.security.PublicKey;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 
+/**
+ * This class is sourced from the Network and Computer Security (SIRS) 2023/2024 course,
+ * accessible at: https://github.com/tecnico-sec/Java-Crypto-Details.
+ * Its sole purpose is to generate RSA key pairs for each execution of the system.
+ */
 public class RSAKeyGenerator {
 
     public static void main(String[] args) throws Exception {
