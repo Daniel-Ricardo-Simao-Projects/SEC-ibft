@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.net.*;
 import java.text.MessageFormat;
 import java.util.*;
+import java.util.concurrent.CompletionService;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -221,7 +222,7 @@ public class Link {
                 if (!originalType.equals(Type.COMMIT))
                     return message;
             }
-            case PREPARE -> {
+            case PREPARE, ROUND_CHANGE -> {
                 ConsensusMessage consensusMessage = (ConsensusMessage) message;
                 if (consensusMessage.getReplyTo() != null && consensusMessage.getReplyTo().equals(config.getId()))
                     receivedAcks.add(consensusMessage.getReplyToMessageId());

@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 
@@ -21,6 +21,12 @@ import pt.ulisboa.tecnico.hdsledger.utilities.Authenticate;
 
 public class NodeService implements UDPService {
 
+    private final ScheduledExecutorService timerExecutor = Executors.newScheduledThreadPool(1);
+
+    private ScheduledFuture<?> timerFuture;
+
+    private boolean isRoundChanging = false;
+
     private static final CustomLogger LOGGER = new CustomLogger(NodeService.class.getName());
     // Nodes configurations
     private final ProcessConfig[] nodesConfig;
@@ -28,7 +34,7 @@ public class NodeService implements UDPService {
     // Current node is leader
     private final ProcessConfig config;
     // Leader configuration
-    private final ProcessConfig leaderConfig;
+    private ProcessConfig leaderConfig;
 
     // Link to communicate with nodes
     private final Link link;
@@ -37,6 +43,8 @@ public class NodeService implements UDPService {
     private final MessageBucket prepareMessages;
     // Consensus instance -> Round -> List of commit messages
     private final MessageBucket commitMessages;
+
+    private final MessageBucket roundChangeMessages;
 
     // Store if already received pre-prepare for a given <consensus, round>
     private final Map<Integer, Map<Integer, Boolean>> receivedPrePrepare = new ConcurrentHashMap<>();
@@ -60,6 +68,7 @@ public class NodeService implements UDPService {
 
         this.prepareMessages = new MessageBucket(nodesConfig.length);
         this.commitMessages = new MessageBucket(nodesConfig.length);
+        this.roundChangeMessages = new MessageBucket(nodesConfig.length);
     }
 
     public ProcessConfig getConfig() {
@@ -140,6 +149,40 @@ public class NodeService implements UDPService {
             LOGGER.log(Level.INFO,
                     MessageFormat.format("{0} - Node is not leader, waiting for PRE-PREPARE message", config.getId()));
         }
+
+        LOGGER.log(Level.INFO,
+                MessageFormat.format("{0} - Node timer started", config.getId()));
+
+        timerFuture = timerExecutor.schedule(() -> {
+
+            LOGGER.log(Level.INFO,
+                    MessageFormat.format("{0} - Node timer expired", config.getId()));
+
+            // Increment round number
+            InstanceInfo instance = this.instanceInfo.get(localConsensusInstance);
+            instance.setCurrentRound(instance.getCurrentRound() + 1);
+            isRoundChanging = true;
+            this.instanceInfo.put(localConsensusInstance, new InstanceInfo(value));
+
+            // Set new leader for new round
+            this.leaderConfig = nodesConfig[instance.getCurrentRound() % nodesConfig.length];
+
+            // Set timer to running
+            resetTimer();
+
+            // Broadcast ROUND_CHANGE message
+            RoundChangeMessage roundChangeMessage = new RoundChangeMessage(instance.getPreparedValue(),
+                    instance.getPreparedRound());
+
+            ConsensusMessage consensusMessage = new ConsensusMessageBuilder(config.getId(), Message.Type.ROUND_CHANGE)
+                    .setConsensusInstance(localConsensusInstance)
+                    .setRound(instance.getCurrentRound())
+                    .setMessage(roundChangeMessage.toJson())
+                    .build();
+
+            this.link.broadcast(consensusMessage);
+
+        }, 7000, TimeUnit.MILLISECONDS);
     }
 
     /*
@@ -149,6 +192,10 @@ public class NodeService implements UDPService {
      * @param message Message to be handled
      */
     public void uponPrePrepare(ConsensusMessage message) {
+
+        if (isRoundChanging) {
+            return;
+        }
 
         int consensusInstance = message.getConsensusInstance();
         int round = message.getRound();
@@ -172,6 +219,8 @@ public class NodeService implements UDPService {
                             config.getId(), senderId));
             return;
         }
+
+        resetTimer();
 
         try {
             byte[] signature = message.getSignature();
@@ -225,6 +274,10 @@ public class NodeService implements UDPService {
      * @param message Message to be handled
      */
     public synchronized void uponPrepare(ConsensusMessage message) {
+
+        if (isRoundChanging) {
+            return;
+        }
 
         int consensusInstance = message.getConsensusInstance();
         int round = message.getRound();
@@ -303,6 +356,10 @@ public class NodeService implements UDPService {
      */
     public synchronized void uponCommit(ConsensusMessage message) {
 
+        if (isRoundChanging) {
+            return;
+        }
+
         int consensusInstance = message.getConsensusInstance();
         int round = message.getRound();
 
@@ -336,6 +393,8 @@ public class NodeService implements UDPService {
                 consensusInstance, round);
 
         if (commitValue.isPresent() && instance.getCommittedRound() < round) {
+
+            cancelTimer();
 
             instance = this.instanceInfo.get(consensusInstance);
             instance.setCommittedRound(round);
@@ -383,6 +442,47 @@ public class NodeService implements UDPService {
                 MessageFormat.format("{0} - Received ROUND CHANGE message from {1}: Consensus Instance {2}, Round {3}",
                         config.getId(), message.getSenderId(), consensusInstance, round));
 
+        roundChangeMessages.addMessage(message);
+
+        InstanceInfo instance = this.instanceInfo.get(consensusInstance);
+
+        Optional<String> roundChangeValue = roundChangeMessages.hasValidCommitQuorum(config.getId(),
+                consensusInstance, round);
+
+        if (roundChangeValue.isPresent() && config.getId() == leaderConfig.getId()) {
+
+        }
+    }
+
+    // Method to reset the timer
+    private void resetTimer() {
+        // Cancel the existing timer if it's still running
+        if (timerFuture != null && !timerFuture.isDone()) {
+            timerFuture.cancel(true);
+        }
+
+        LOGGER.log(Level.INFO,
+                MessageFormat.format("{0} - Node timer restarted", config.getId()));
+
+        // Schedule a new task with the desired delay
+        timerFuture = timerExecutor.schedule(() -> {
+
+            LOGGER.log(Level.INFO,
+                    MessageFormat.format("{0} - Node timer expired", config.getId()));
+
+        }, 7000, TimeUnit.MILLISECONDS);
+    }
+
+    private void cancelTimer() {
+        if (timerFuture != null && !timerFuture.isDone()) {
+            timerFuture.cancel(true);
+        }
+
+        LOGGER.log(Level.INFO,
+                MessageFormat.format("{0} - Node timer stopped", config.getId()));
+
+        // You may want to recreate the executor if you intend to use it again
+        // timerExecutor = Executors.newScheduledThreadPool(1);
     }
 
     @Override
