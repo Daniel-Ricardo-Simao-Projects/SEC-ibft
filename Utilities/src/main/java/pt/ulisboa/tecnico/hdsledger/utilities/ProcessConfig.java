@@ -1,7 +1,8 @@
 package pt.ulisboa.tecnico.hdsledger.utilities;
 
 public class ProcessConfig {
-    public ProcessConfig() {}
+    public ProcessConfig() {
+    }
 
     private boolean isLeader;
 
@@ -13,28 +14,52 @@ public class ProcessConfig {
 
     private int clientPort;
 
+    private ByzantineType byzantineType;
+
+    
     public boolean isLeader() {
         return isLeader;
     }
 
+    public void setLeader(boolean leader) {
+        isLeader = leader;
+    }
+    
     public void setPort(int port) {
         this.port = port;
     }
-
+    
     public int getPort() {
         return port;
     }
-
+    
     public String getId() {
         return id;
     }
-
+    
     public String getHostname() {
         return hostname;
     }
-
+    
     public int getClientPort() {
         return clientPort;
     }
+    
+    public enum ByzantineType {
+        NONE,
+        SILENT,                 // drop messages
+        DELAY,                  // delay messages                  
+        FAKE_LEADER,            // pretend to be the leader
+        EQUIVOCATION,           // send different messages to different nodes
+        FAKE_MESSAGES,          // send fake messages
+    }
 
+    public ByzantineType getByzantineType() {
+        return byzantineType;
+    }
+    
+    public void setByzantineType(ByzantineType byzantineType) {
+        this.byzantineType = byzantineType;
+    }
+    
 }

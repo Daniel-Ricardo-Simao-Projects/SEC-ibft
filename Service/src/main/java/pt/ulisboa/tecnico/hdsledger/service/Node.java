@@ -8,6 +8,7 @@ import pt.ulisboa.tecnico.hdsledger.service.services.SerenityLedgerService;
 import pt.ulisboa.tecnico.hdsledger.utilities.CustomLogger;
 import pt.ulisboa.tecnico.hdsledger.utilities.ProcessConfig;
 import pt.ulisboa.tecnico.hdsledger.utilities.ProcessConfigBuilder;
+import pt.ulisboa.tecnico.hdsledger.utilities.ProcessConfig.ByzantineType;
 
 import java.text.MessageFormat;
 import java.util.Arrays;
@@ -34,9 +35,22 @@ public class Node {
             ProcessConfig nodeConfig = Arrays.stream(nodeConfigs).filter(c -> c.getId().equals(id)).findAny().get();
             ProcessConfig[] clients = new ProcessConfigBuilder().fromFile(clientsConfigPath);
 
-            LOGGER.log(Level.INFO, MessageFormat.format("{0} - Running at {1}:{2,number,#}; is leader: {3}",
+            LOGGER.log(Level.INFO, MessageFormat.format("{0} - Running at {1}:{2,number,#}; is leader: {3};\n BIZANTINE TYPE: {4}",
                     nodeConfig.getId(), nodeConfig.getHostname(), nodeConfig.getPort(),
-                    nodeConfig.isLeader()));
+                    nodeConfig.isLeader(), nodeConfig.getByzantineType()));
+            
+            if (nodeConfig.getByzantineType() == ByzantineType.FAKE_LEADER) {
+                nodeConfig.setLeader(true);
+                // Set the leader to itself inside node configs
+                for (var node : nodeConfigs) {
+                    if (node.getId().equals(nodeConfig.getId())) {
+                        node.setLeader(true);
+                    } else if (node.getId().equals(leaderConfig.getId())) {
+                        node.setLeader(false);
+                    }
+                }
+                leaderConfig = nodeConfig;
+            }
 
             // Abstraction to send and receive messages
             Link linkToNodes = new Link(nodeConfig, nodeConfig.getPort(), nodeConfigs,
@@ -48,7 +62,8 @@ public class Node {
             NodeService nodeService = new NodeService(linkToNodes, nodeConfig, leaderConfig,
                     nodeConfigs);
 
-            SerenityLedgerService serenityLedgerService = new SerenityLedgerService(id, clients, nodeService, linkToClients);
+            SerenityLedgerService serenityLedgerService = new SerenityLedgerService(id, clients, nodeService,
+                    linkToClients);
 
             nodeService.listen();
             serenityLedgerService.listen();

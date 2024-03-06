@@ -1,5 +1,5 @@
 [
-    {   
+    {
         "id": "1",
         "isLeader": true,
         "hostname": "localhost",
@@ -13,7 +13,7 @@
         "hostname": "localhost",
         "port": 3002,
         "clientPort": 6002,
-        "byzantineType": "NONE"
+        "byzantineType": "FAKE_LEADER"
     },
     {
         "id": "3",

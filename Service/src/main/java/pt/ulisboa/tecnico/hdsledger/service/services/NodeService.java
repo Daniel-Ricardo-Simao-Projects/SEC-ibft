@@ -16,6 +16,7 @@ import pt.ulisboa.tecnico.hdsledger.service.models.InstanceInfo;
 import pt.ulisboa.tecnico.hdsledger.service.models.MessageBucket;
 import pt.ulisboa.tecnico.hdsledger.utilities.CustomLogger;
 import pt.ulisboa.tecnico.hdsledger.utilities.ProcessConfig;
+import pt.ulisboa.tecnico.hdsledger.utilities.ProcessConfig.ByzantineType;
 import pt.ulisboa.tecnico.hdsledger.utilities.Authenticate;
 
 public class NodeService implements UDPService {
@@ -76,7 +77,7 @@ public class NodeService implements UDPService {
     private boolean isLeader(String id) {
         return this.leaderConfig.getId().equals(id);
     }
- 
+
     public ConsensusMessage createConsensusMessage(String value, int instance, int round, byte[] digitalSignature) {
         PrePrepareMessage prePrepareMessage = new PrePrepareMessage(value);
 
@@ -124,7 +125,7 @@ public class NodeService implements UDPService {
         if (this.config.isLeader()) {
             InstanceInfo instance = this.instanceInfo.get(localConsensusInstance);
             LOGGER.log(Level.INFO,
-                MessageFormat.format("{0} - Node is leader, sending PRE-PREPARE message", config.getId()));
+                    MessageFormat.format("{0} - Node is leader, sending PRE-PREPARE message", config.getId()));
             // Create digital signature
             byte[] digitalSignature = null;
             try {
@@ -133,7 +134,8 @@ public class NodeService implements UDPService {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            this.link.broadcast(this.createConsensusMessage(value, localConsensusInstance, instance.getCurrentRound(), digitalSignature));
+            this.link.broadcast(this.createConsensusMessage(value, localConsensusInstance, instance.getCurrentRound(),
+                    digitalSignature));
         } else {
             LOGGER.log(Level.INFO,
                     MessageFormat.format("{0} - Node is not leader, waiting for PRE-PREPARE message", config.getId()));
@@ -163,8 +165,13 @@ public class NodeService implements UDPService {
                         config.getId(), senderId, consensusInstance, round));
 
         // Verify if pre-prepare was sent by leader
-        if (!isLeader(senderId))
+        if (!isLeader(senderId)){
+            LOGGER.log(Level.WARNING,
+                    MessageFormat.format(
+                            "{0} - Received PRE-PREPARE message from non-leader {1}",
+                            config.getId(), senderId));
             return;
+        }
 
         try {
             byte[] signature = message.getSignature();
@@ -173,10 +180,12 @@ public class NodeService implements UDPService {
             boolean valid = Authenticate.verifyDigitalSignature(value, signature, Authenticate.readPublicKey(path));
 
             if (!valid) {
-                LOGGER.log(Level.INFO, MessageFormat.format("{0} - Invalid signature from {1}", config.getId(), senderId));
+                LOGGER.log(Level.WARNING,
+                        MessageFormat.format("{0} - Invalid signature from {1}", config.getId(), senderId));
                 return;
             } else {
-                LOGGER.log(Level.INFO, MessageFormat.format("{0} - Valid signature from {1}", config.getId(), senderId));
+                LOGGER.log(Level.INFO,
+                        MessageFormat.format("{0} - Valid signature from {1}", config.getId(), senderId));
             }
 
         } catch (Exception e) {
@@ -287,8 +296,6 @@ public class NodeService implements UDPService {
         }
     }
 
-
-
     /*
      * Handle commit messages and decide if there is a valid quorum
      *
@@ -309,9 +316,9 @@ public class NodeService implements UDPService {
 
         if (instance == null) {
             // Should never happen because only receives commit as a response to a prepare message
-            MessageFormat.format(
+            LOGGER.log(Level.WARNING, MessageFormat.format(
                     "{0} - CRITICAL: Received COMMIT message from {1}: Consensus Instance {2}, Round {3} BUT NO INSTANCE INFO",
-                    config.getId(), message.getSenderId(), consensusInstance, round);
+                    config.getId(), message.getSenderId(), consensusInstance, round));
             return;
         }
 
@@ -343,13 +350,13 @@ public class NodeService implements UDPService {
                 while (ledger.size() < consensusInstance - 1) {
                     ledger.add("");
                 }
-                
+
                 ledger.add(consensusInstance - 1, value);
-                
+
                 LOGGER.log(Level.INFO,
-                    MessageFormat.format(
-                            "{0} - Current Ledger: {1}",
-                            config.getId(), String.join("", ledger)));
+                        MessageFormat.format(
+                                "{0} - Current Ledger: {1}",
+                                config.getId(), String.join("", ledger)));
             }
 
             lastDecidedConsensusInstance.getAndIncrement();
@@ -360,7 +367,6 @@ public class NodeService implements UDPService {
                             config.getId(), consensusInstance, round, true));
         }
     }
-
 
     public synchronized void uponRoundChange(ConsensusMessage message) {
 
@@ -396,14 +402,11 @@ public class NodeService implements UDPService {
                                 case PRE_PREPARE ->
                                     uponPrePrepare((ConsensusMessage) message);
 
-
                                 case PREPARE ->
                                     uponPrepare((ConsensusMessage) message);
 
-
                                 case COMMIT ->
                                     uponCommit((ConsensusMessage) message);
-
 
                                 case ROUND_CHANGE ->
                                     uponRoundChange((ConsensusMessage) message);

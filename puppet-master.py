@@ -11,10 +11,11 @@ terminal = "kitty"
 # Blockchain node configuration file name
 server_configs = [
     "regular_config.json",
+    "fake_leader.json"
 ]
 
 
-server_config = server_configs[0]
+server_config = server_configs[1]
 
 def quit_handler(*args):
     os.system(f"pkill -i {terminal}")
