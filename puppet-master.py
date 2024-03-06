@@ -29,11 +29,13 @@ os.system("mvn clean install")
 os.system("rm -rf Utilities/keys/")
 os.system("mkdir Utilities/keys/")
 
+# Compile RSAKeyGenerator
+os.system("javac -d Utilities/out Utilities/src/main/java/pt/ulisboa/tecnico/hdsledger/utilities/RSAKeyGenerator.java")
+
 # Spawn blockchain nodes
 with open(f"Service/src/main/resources/{server_config}") as f:
     data = json.load(f)
     processes = list()
-    os.system("javac -d Utilities/out Utilities/src/main/java/pt/ulisboa/tecnico/hdsledger/utilities/RSAKeyGenerator.java")
     for key in data:
         pid = os.fork()
         if pid == 0:
@@ -52,6 +54,11 @@ with open("Client/src/main/resources/client_config.json") as f:
     for key in data:
         pid = os.fork()
         if pid == 0:
+            config_id = key['id']
+            priv_key_path = f"Utilities/keys/{config_id}Priv.key"
+            pub_key_path = f"Utilities/keys/{config_id}Pub.key"
+            os.system(f"java -cp Utilities/out pt.ulisboa.tecnico.hdsledger.utilities.RSAKeyGenerator {priv_key_path} {pub_key_path}")
+
             os.system(
                 f"{terminal} > /dev/null 2>&1 sh -c \"cd Client; mvn exec:java -Dexec.args='{key['id']} {server_config}' ; sleep 1000\"")
             sys.exit()

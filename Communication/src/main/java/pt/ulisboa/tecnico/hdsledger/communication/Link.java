@@ -97,6 +97,28 @@ public class Link {
                     throw new HDSSException(ErrorMessage.NoSuchNode);
 
                 data.setMessageId(messageCounter.getAndIncrement());
+                
+                // Set digital signature
+                if (data instanceof ConsensusMessage || data instanceof AppendRequest) {
+                    String value = null;
+                    if (data instanceof ConsensusMessage) {
+                        ConsensusMessage consensusMessage = (ConsensusMessage) data;
+                        value = consensusMessage.getMessage();
+                    } else if (data instanceof AppendRequest) {
+                        AppendRequest appendRequest = (AppendRequest) data;
+                        value = appendRequest.getStringToAppend();
+                    }
+
+                    byte[] digitalSignature = null;
+                    try {
+                        String path = "../Utilities/keys/" + config.getId() + "Priv.key";
+                        digitalSignature = Authenticate.createDigitalSignature(value, Authenticate.readPrivateKey(path));
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+                    data.setSignature(digitalSignature);
+                }
 
                 // If the message is not ACK, it will be resent
                 InetAddress destAddress = InetAddress.getByName(node.getHostname());
@@ -195,6 +217,34 @@ public class Link {
 
         if (!nodes.containsKey(senderId))
             throw new HDSSException(ErrorMessage.NoSuchNode);
+
+        // Verify signature
+        String value = null;
+        if (message instanceof ConsensusMessage) {
+            ConsensusMessage consensusMessage = (ConsensusMessage) message;
+            value = consensusMessage.getMessage();
+        } else if (message instanceof AppendRequest) {
+            AppendRequest appendRequest = (AppendRequest) message;
+            value = appendRequest.getStringToAppend();
+        }         
+
+        if (message instanceof ConsensusMessage || message instanceof AppendRequest) {
+            byte[] digitalSignature = message.getSignature();
+            boolean isVerified = false;
+            try {
+                String path = "../Utilities/keys/" + senderId + "Pub.key";
+                isVerified = Authenticate.verifyDigitalSignature(value, digitalSignature, Authenticate.readPublicKey(path));
+            } catch (Exception e) {
+                e.printStackTrace();
+
+                if (!isVerified) {
+                    LOGGER.log(Level.INFO, MessageFormat.format("{0} - Message {1} from {2} with message ID {3} was not correctly verified",
+                        config.getId(), message.getType(), senderId, messageId));
+                    message.setType(Message.Type.IGNORE);
+                    return message;
+                }
+            }
+        }
 
         // Handle ACKS, since it's possible to receive multiple acks from the same
         // message
