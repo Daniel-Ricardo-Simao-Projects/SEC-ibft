@@ -59,7 +59,7 @@ public class ClientService {
 
         try {
             // Block until the latch is released or until a timeout occurs (adjust timeout as needed)
-            latch.await(5, TimeUnit.SECONDS);
+            latch.await(10, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

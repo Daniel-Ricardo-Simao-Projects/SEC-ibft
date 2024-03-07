@@ -79,9 +79,19 @@ public class MessageBucket {
     }
 
     public Optional<String> hasValidRoundChangeQuorum(String nodeId, int instance, int round) {
+        Map<Integer, Map<String, ConsensusMessage>> roundMap = bucket.get(instance);
+        if (roundMap == null) {
+            return Optional.empty(); // or handle the case where roundMap is null
+        }
+
+        Map<String, ConsensusMessage> senderMap = roundMap.get(round);
+        if (senderMap == null) {
+            return Optional.empty(); // or handle the case where senderMap is null
+        }
+
         // Create mapping of value to frequency
         HashMap<String, Integer> frequency = new HashMap<>();
-        bucket.get(instance).get(round).values().forEach((message) -> {
+        senderMap.values().forEach((message) -> {
             RoundChangeMessage roundChangeMessage = message.deserializeRoundChangeMessage();
             String value = roundChangeMessage.getPreparedValue();
             frequency.put(value, frequency.getOrDefault(value, 0) + 1);
@@ -95,6 +105,7 @@ public class MessageBucket {
             return entry.getKey();
         }).findFirst();
     }
+
 
     public Optional<Integer> findSmallestValidRoundChange(String nodeId, int instance, int currentRound) {
         // Create mapping of round to frequency
