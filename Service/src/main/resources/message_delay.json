@@ -1,12 +1,12 @@
 [
-    {   
+    {
         "id": "1",
         "isLeader": true,
         "hostname": "localhost",
         "port": 3001,
         "clientPort": 6001,
         "byzantineType": "NONE",
-        "messageDelay": 0
+        "messageDelay": 100
     },
     {
         "id": "2",
@@ -15,7 +15,7 @@
         "port": 3002,
         "clientPort": 6002,
         "byzantineType": "NONE",
-        "messageDelay": 0
+        "messageDelay": 50
     },
     {
         "id": "3",
@@ -24,7 +24,7 @@
         "port": 3003,
         "clientPort": 6003,
         "byzantineType": "NONE",
-        "messageDelay": 0
+        "messageDelay": 1000
     },
     {
         "id": "4",
@@ -33,6 +33,6 @@
         "port": 3004,
         "clientPort": 6004,
         "byzantineType": "NONE",
-        "messageDelay": 0
+        "messageDelay": 10000
     }
 ]

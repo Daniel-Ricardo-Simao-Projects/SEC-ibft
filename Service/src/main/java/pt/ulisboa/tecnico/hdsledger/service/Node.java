@@ -35,9 +35,10 @@ public class Node {
             ProcessConfig nodeConfig = Arrays.stream(nodeConfigs).filter(c -> c.getId().equals(id)).findAny().get();
             ProcessConfig[] clients = new ProcessConfigBuilder().fromFile(clientsConfigPath);
 
-            LOGGER.log(Level.INFO, MessageFormat.format("{0} - Running at {1}:{2,number,#}; is leader: {3};\n BIZANTINE TYPE: {4}",
+            LOGGER.log(Level.INFO, MessageFormat.format("{0} - Running at {1}:{2,number,#}; is leader: {3}; latency: {4,number,#}ms\n" + 
+                                                        "BIZANTINE TYPE: {5}",
                     nodeConfig.getId(), nodeConfig.getHostname(), nodeConfig.getPort(),
-                    nodeConfig.isLeader(), nodeConfig.getByzantineType()));
+                    nodeConfig.isLeader(), nodeConfig.getMessageDelay(), nodeConfig.getByzantineType()));
             
             if (nodeConfig.getByzantineType() == ByzantineType.FAKE_LEADER) {
                 nodeConfig.setLeader(true);

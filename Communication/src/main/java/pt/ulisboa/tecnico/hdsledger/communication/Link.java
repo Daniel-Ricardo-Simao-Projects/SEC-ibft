@@ -140,9 +140,10 @@ public class Link {
 
                 for (;;) {
                     LOGGER.log(Level.INFO, MessageFormat.format(
-                            "{0} - Sending {1} message to {2}:{3} with message ID {4} - Attempt #{5}", config.getId(),
-                            data.getType(), destAddress, destPort, messageId, count++));
-
+                            "{0} - Sending {1} message to {2}:{3} with message ID {4} and latency {5} - Attempt #{6}", config.getId(),
+                            data.getType(), destAddress, destPort, messageId, config.getMessageDelay(), count++));
+                    // artificial latency of each node
+                    Thread.sleep(config.getMessageDelay());
                     unreliableSend(destAddress, destPort, data);
 
                     // Wait (using exponential back-off), then look for ACK

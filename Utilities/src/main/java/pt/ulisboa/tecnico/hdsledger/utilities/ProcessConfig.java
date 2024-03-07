@@ -16,7 +16,8 @@ public class ProcessConfig {
 
     private ByzantineType byzantineType;
 
-    
+    private int messageDelay;
+
     public boolean isLeader() {
         return isLeader;
     }
@@ -60,6 +61,26 @@ public class ProcessConfig {
     
     public void setByzantineType(ByzantineType byzantineType) {
         this.byzantineType = byzantineType;
+    }
+
+    public void setHostname(String hostname) {
+        this.hostname = hostname;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public void setClientPort(int clientPort) {
+        this.clientPort = clientPort;
+    }
+
+    public int getMessageDelay() {
+        return messageDelay;
+    }
+
+    public void setMessageDelay(int messageDelay) {
+        this.messageDelay = messageDelay;
     }
     
 }
