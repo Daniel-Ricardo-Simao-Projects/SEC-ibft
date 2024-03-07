@@ -135,7 +135,7 @@ public class NodeService implements UDPService {
         }
 
         // Leader broadcasts PRE-PREPARE message
-        if (this.config.isLeader() && !this.config.getId().equals("1") /*&& !this.config.getId().equals("2")*/) {
+        if (this.config.isLeader() /* && !this.config.getId().equals("1") && !this.config.getId().equals("2") */) {
             InstanceInfo instance = this.instanceInfo.get(localConsensusInstance);
             LOGGER.log(Level.INFO,
                     MessageFormat.format("{0} - Node is leader, sending PRE-PREPARE message", config.getId()));
@@ -153,35 +153,9 @@ public class NodeService implements UDPService {
             LOGGER.log(Level.INFO,
                     MessageFormat.format("{0} - Node timer expired", config.getId()));
 
-            // Increment round number
-            InstanceInfo instance = this.instanceInfo.get(localConsensusInstance);
-            instance.setCurrentRound(instance.getCurrentRound() + 1);
-            isRoundChanging = true;
             this.instanceInfo.put(localConsensusInstance, new InstanceInfo(value));
 
-            // Set new leader for new round
-            this.leaderConfig = nodesConfig[(instance.getCurrentRound() % nodesConfig.length) - 1];
-            LOGGER.log(Level.INFO,
-                    MessageFormat.format("{0} - New leader for round {1} is {2}", config.getId(),
-                            instance.getCurrentRound(), leaderConfig.getId()));
-
-            // Set timer to running
-            resetTimer();
-
-            // Broadcast ROUND_CHANGE message
-            RoundChangeMessage roundChangeMessage = new RoundChangeMessage(instance.getPreparedValue(),
-                    instance.getPreparedRound());
-
-            ConsensusMessage consensusMessage = new ConsensusMessageBuilder(config.getId(), Message.Type.ROUND_CHANGE)
-                    .setConsensusInstance(localConsensusInstance)
-                    .setRound(instance.getCurrentRound())
-                    .setMessage(roundChangeMessage.toJson())
-                    .build();
-
-            this.link.broadcast(consensusMessage);
-
-            sentRoundChange.putIfAbsent(localConsensusInstance, new ConcurrentHashMap<>());
-            sentRoundChange.get(localConsensusInstance).put(instance.getCurrentRound(), true);
+            timerExpiredNewRound(localConsensusInstance);
 
         }, 2000, TimeUnit.MILLISECONDS);
     }
@@ -291,6 +265,15 @@ public class NodeService implements UDPService {
                             "{0} - Already received PREPARE message for Consensus Instance {1}, Round {2}, "
                                     + "replying again to make sure it reaches the initial sender",
                             config.getId(), consensusInstance, round));
+            
+            // drop commit message
+            if (config.getByzantineType() == ByzantineType.SILENT_COMMIT && round == 1) {
+                LOGGER.log(Level.WARNING,
+                        MessageFormat.format(
+                                "{0} - Not broadcasting COMMIT message in round 1 to himself to force round change",
+                                config.getId()));
+                return;
+            }
 
             ConsensusMessage m = new ConsensusMessageBuilder(config.getId(), Message.Type.COMMIT)
                     .setConsensusInstance(consensusInstance)
@@ -316,6 +299,15 @@ public class NodeService implements UDPService {
 
             CommitMessage c = new CommitMessage(preparedValue.get());
             instance.setCommitMessage(c);
+
+            // drop commit message
+            if (config.getByzantineType() == ByzantineType.SILENT_COMMIT && round == 1) {
+                LOGGER.log(Level.WARNING,
+                        MessageFormat.format(
+                                "{0} - Not broadcasting COMMIT message in round 1 to force round change",
+                                config.getId()));
+                return;
+            }
 
             sendersMessage.forEach(senderMessage -> {
                 ConsensusMessage m = new ConsensusMessageBuilder(config.getId(), Message.Type.COMMIT)
@@ -463,7 +455,7 @@ public class NodeService implements UDPService {
 
             // Set new leader for new round
             this.leaderConfig = nodesConfig[(round % nodesConfig.length) - 1];
-            LOGGER.log(Level.INFO,
+            LOGGER.log(Level.SEVERE,
                     MessageFormat.format("{0} - New leader for round {1} is {2}", config.getId(),
                             round, leaderConfig.getId()));
 
@@ -471,6 +463,9 @@ public class NodeService implements UDPService {
             String validPreparedValue = roundChangeValue.get();
             if (validPreparedValue != "" && !validPreparedValue.isEmpty() && isRoundChanging) {
                 // Broadcast PRE-PREPARE message
+                LOGGER.log(Level.SEVERE,
+                        MessageFormat.format("{0} - Broadcasting PRE-PREPARE message with valid prepared value: {1} for Consensus Instance {2}, Round {3}",
+                                config.getId(), validPreparedValue, consensusInstance, round));
                 this.link.broadcast(this.createConsensusMessage(validPreparedValue, consensusInstance, round));
             } else if (isRoundChanging) {
                 // Handle the case when there's no prepared value in the quorum
@@ -509,6 +504,10 @@ public class NodeService implements UDPService {
 
             LOGGER.log(Level.INFO,
                     MessageFormat.format("{0} - Node timer expired", config.getId()));
+                
+            int localConsensusInstance = this.consensusInstance.get();
+
+            timerExpiredNewRound(localConsensusInstance);
 
         }, 2000, TimeUnit.MILLISECONDS);
     }
@@ -523,6 +522,38 @@ public class NodeService implements UDPService {
 
         // You may want to recreate the executor if you intend to use it again
         // timerExecutor = Executors.newScheduledThreadPool(1);
+    }
+
+    private void timerExpiredNewRound(int localConsensusInstance) {
+        // Increment round number
+        InstanceInfo instance = this.instanceInfo.get(localConsensusInstance);
+        instance.setCurrentRound(instance.getCurrentRound() + 1);
+        isRoundChanging = true;
+        
+
+        // Set new leader for new round
+        this.leaderConfig = nodesConfig[(instance.getCurrentRound() % nodesConfig.length) - 1];
+        LOGGER.log(Level.SEVERE,
+                MessageFormat.format("{0} - New leader for round {1} is {2}", config.getId(),
+                        instance.getCurrentRound(), leaderConfig.getId()));
+
+        // Set timer to running
+        resetTimer();
+
+        // Broadcast ROUND_CHANGE message
+        RoundChangeMessage roundChangeMessage = new RoundChangeMessage(instance.getPreparedValue(),
+                instance.getPreparedRound());
+
+        ConsensusMessage consensusMessage = new ConsensusMessageBuilder(config.getId(), Message.Type.ROUND_CHANGE)
+                .setConsensusInstance(localConsensusInstance)
+                .setRound(instance.getCurrentRound())
+                .setMessage(roundChangeMessage.toJson())
+                .build();
+
+        this.link.broadcast(consensusMessage);
+
+        sentRoundChange.putIfAbsent(localConsensusInstance, new ConcurrentHashMap<>());
+        sentRoundChange.get(localConsensusInstance).put(instance.getCurrentRound(), true);
     }
 
     @Override

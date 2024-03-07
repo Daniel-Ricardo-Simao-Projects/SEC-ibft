@@ -13,12 +13,17 @@ server_configs = [
     "regular_config.json",
     "fake_leader.json",
     "message_delay.json",
+    "leader_delay.json",
+    "round_change_prev_prepare.json",
 ]
 
 choiceStr = input("Choose a configuration:\n"
                   "1 - Regular\n"
                   "2 - Fake Leader\n"
-                  "3 - Message Delay\n>> ")
+                  "3 - Message Delay\n"
+                  "4 - Leader Delay\n"
+                  "5 - Round Change With Previous Prepare\n"
+                  ">> ")
 
 choice = int(choiceStr)
 

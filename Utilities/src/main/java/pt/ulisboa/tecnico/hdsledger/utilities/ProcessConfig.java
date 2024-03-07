@@ -52,7 +52,7 @@ public class ProcessConfig {
         DELAY,                  // delay messages                  
         FAKE_LEADER,            // pretend to be the leader
         EQUIVOCATION,           // send different messages to different nodes
-        FAKE_MESSAGES,          // send fake messages
+        SILENT_COMMIT,          // do not broadcast commit message
     }
 
     public ByzantineType getByzantineType() {

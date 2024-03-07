@@ -49,7 +49,7 @@ class CustomLog extends Formatter {
         Level level = record.getLevel();
         if (level == Level.INFO) {
             sb.append(ANSI_WHITE);
-        } else if (level == Level.CONFIG) {
+        } else if (level == Level.SEVERE) {
             sb.append(ANSI_BLUE);
         } else if (level == Level.WARNING) {
             sb.append(ANSI_RED);
