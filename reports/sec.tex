@@ -1,0 +1,71 @@
+\documentclass[12pt]{article}
+\setlength{\headheight}{14.49998pt}
+\usepackage[utf8]{inputenc}
+\usepackage{enumitem}
+\usepackage{tabularx}
+\usepackage{graphicx}
+\usepackage{geometry}
+\usepackage{fancyhdr}
+\usepackage{indentfirst}
+\usepackage{url}
+\usepackage{titletoc}  % Added package for table of contents formatting
+\usepackage{setspace}  % Added package for line spacing
+
+\geometry{a4paper, margin=1in}
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{Page \thepage\ of \pageref{LastPage}}
+
+% Adjust font size and spacing for the table of contents
+\titlecontents{section}
+  [0em]
+  {\large\setstretch{1.5}} % Adjust the spacing factor as needed
+  {\contentslabel{2em}}
+  {}
+  {\titlerule*[1pc]{.}\contentspage}
+
+\begin{document}
+
+% Cover Page
+\begin{titlepage}
+    \vspace*{\fill}
+    \centering
+    \LARGE\textbf{HDS Serenity Ledger 1st Stage}\\
+    \vspace{2em}
+    \LARGE
+    MEIC-A 2023/2024\\
+    Group Campus: Alameda\\
+    Group Number: 22\\
+    \vspace{2em}
+    \begin{tabular}{|c|}
+        \hline
+        Group Members\\
+        \hline
+        Daniel Pereira, 99194\\
+        Ricardo Toscanelli, 99315\\
+        Simão Gato, 99328\\
+        \hline
+    \end{tabular}
+    \vspace{2em}
+    \vspace*{\fill}
+\end{titlepage}
+
+% Table of Contents
+\tableofcontents
+\newpage
+
+% Introduction
+\section{Introduction}
+
+% Design
+\section{Design}
+
+% Tests
+\section{Tests}
+
+% Conclusion
+\section{Conclusion}
+
+\label{LastPage}
+
+\end{document}
