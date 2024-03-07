@@ -15,7 +15,10 @@ server_configs = [
     "message_delay.json",
 ]
 
-choiceStr = input("Choose a configuration:\n1 - Regular\n2 - Fake Leader\n3 - Message Delay\n>> ")
+choiceStr = input("Choose a configuration:\n"
+                  "1 - Regular\n"
+                  "2 - Fake Leader\n"
+                  "3 - Message Delay\n>> ")
 
 choice = int(choiceStr)
 

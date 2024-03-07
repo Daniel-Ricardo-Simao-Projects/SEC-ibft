@@ -7,7 +7,7 @@ public class InstanceInfo {
 
     private int currentRound = 1;
     private int preparedRound = -1;
-    private String preparedValue;
+    private String preparedValue = "";
     private CommitMessage commitMessage;
     private String inputValue;
     private int committedRound = -1;

@@ -123,7 +123,7 @@ public class MessageBucket {
 
         // Find the smallest round with a frequency greater than or equal to f + 1
         return frequency.entrySet().stream()
-                .filter((Map.Entry<Integer, Integer> entry) -> entry.getValue() >= f + 1)
+                .filter((Map.Entry<Integer, Integer> entry) -> entry.getKey() >= -1 && entry.getValue() >= f + 1)
                 .map(Map.Entry::getKey)
                 .min(Integer::compareTo);
     }
