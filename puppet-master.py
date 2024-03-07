@@ -15,8 +15,11 @@ server_configs = [
     "message_delay.json",
 ]
 
+choiceStr = input("Choose a configuration:\n1 - Regular\n2 - Fake Leader\n3 - Message Delay\n>> ")
 
-server_config = server_configs[2]
+choice = int(choiceStr)
+
+server_config = server_configs[choice-1]
 
 def quit_handler(*args):
     os.system(f"pkill -i {terminal}")
