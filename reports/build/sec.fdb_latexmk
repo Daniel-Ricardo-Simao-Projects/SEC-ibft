@@ -1,11 +1,17 @@
 # Fdb version 4
-["pdflatex"] 1709838766.56274 "/home/simao/school/master/sec/project/SEC-ibft/reports/sec.tex" "build/sec.pdf" "sec" 1709838766.7009 0
-  "/home/simao/school/master/sec/project/SEC-ibft/reports/sec.tex" 1709838766.39466 1424 fcedf7d68b512e136b7ee3407d444094 ""
+["pdflatex"] 1709887462.34217 "/home/simao/school/master/sec/project/SEC-ibft/reports/sec.tex" "build/sec.pdf" "sec" 1709887462.49064 0
+  "/home/simao/school/master/sec/project/SEC-ibft/reports/sec.tex" 1709887462.01777 4039 37241db7d8d15247d512a138574f31f9 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmbx12.tfm" 1136768653 1324 c910af8c371558dc20f2d7822f66fe64 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmmi12.tfm" 1136768653 1524 4414a8315f39513458b80dfc63bff03a ""
+  "/usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmmi6.tfm" 1136768653 1512 f21f83efb36853c0b70002322c1ab3ad ""
+  "/usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmmi8.tfm" 1136768653 1520 eccf95517727cb11801f4f1aee3a21b4 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmr12.tfm" 1136768653 1288 655e228510b4c2a1abe905c368440826 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmr17.tfm" 1136768653 1292 296a67155bdbfc32aa9c636f21e91433 ""
+  "/usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmr6.tfm" 1136768653 1300 b62933e007d01cfd073f79b963c01526 ""
+  "/usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmr8.tfm" 1136768653 1292 21c1c5bfeaebccffdb478fd231a0997d ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmsy10.tfm" 1136768653 1124 6c73e740cf17375f03eec0ee63599741 ""
+  "/usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmsy6.tfm" 1136768653 1116 933a60c408fc0a863a92debe84b2d294 ""
+  "/usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmsy8.tfm" 1136768653 1120 8b7d695260f3cff42e636090a8002094 ""
   "/usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb" 1248133631 32080 340ef9bf63678554ee606688e7b5339d ""
   "/usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb" 1248133631 32722 d7379af29a190c3f453aba36302ff5a9 ""
   "/usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb" 1248133631 32362 179c33bbf43f19adbb3825bb4e36e57a ""
@@ -36,9 +42,9 @@
   "/usr/share/texlive/texmf-dist/web2c/texmf.cnf" 1689984000 40900 887e0dc8cac988a9e9c574af364cf837 ""
   "/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map" 1705570592.50902 336426 1c4dd712afe807a2c1952452131777df ""
   "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1705570577 6477881 c23f2ba7ce09c41d50176e3164e9973c ""
-  "build/sec.aux" 1709838766.67766 460 8ec9e314c0498284764a32820f28e3d4 "pdflatex"
-  "build/sec.toc" 1709838766.67766 238 0e892cb6d5dc40fb500a84b8b7223064 "pdflatex"
-  "sec.tex" 1709838766.39466 1424 fcedf7d68b512e136b7ee3407d444094 ""
+  "build/sec.aux" 1709887462.46577 869 e34d156a1cf7779d579adea990f2a90b "pdflatex"
+  "build/sec.toc" 1709887462.46577 483 f6ddd6338be12d7345a1266928559d54 "pdflatex"
+  "sec.tex" 1709887462.01777 4039 37241db7d8d15247d512a138574f31f9 ""
   (generated)
   "build/sec.aux"
   "build/sec.log"
