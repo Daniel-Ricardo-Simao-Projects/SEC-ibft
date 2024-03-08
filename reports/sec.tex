@@ -80,11 +80,19 @@ In essence, we implemented digital signatures for all messages. This involves si
 
 \subsection{Round Change}
 
+To ensure smooth transitions between consensus rounds within the IBFT protocol, we implemented a round change mechanism based on the algorithm outlined in the paper "The Istanbul BFT Consensus Algorithm" by Henrique Moniz.
+
+This algorithm dictates a dynamic timeout value for each round. This timeout is calculated using an exponential function, where the function considers the current round number and outputs the corresponding waiting time in seconds.  As the round number increases, the timeout value increases exponentially. This approach prevents nodes from waiting indefinitely for a response in the case of failures and facilitates timely progression to the next round.
+
 % Tests
 \section{Tests}
 
 % Conclusion
 \section{Conclusion}
+
+Stage 1 development has yielded a solid foundation for our project. The implemented client, client service, and authenticated links demonstrate a well-designed and secure communication layer. The round change mechanism based on the Istanbul BFT protocol provides a functional solution for transitioning between consensus rounds. However, further work is necessary to refine the round change algorithm and address potential edge cases.
+
+Throughout this stage, we established a testing framework to evaluate system functionality under various scenarios. The results from these tests provide confidence in the project's direction.
 
 \label{LastPage}
 

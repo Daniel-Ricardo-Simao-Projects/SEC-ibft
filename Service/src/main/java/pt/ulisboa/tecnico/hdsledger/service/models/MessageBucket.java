@@ -89,21 +89,19 @@ public class MessageBucket {
             return Optional.empty(); // or handle the case where senderMap is null
         }
 
-        // Create mapping of value to frequency
-        HashMap<String, Integer> frequency = new HashMap<>();
-        senderMap.values().forEach((message) -> {
-            RoundChangeMessage roundChangeMessage = message.deserializeRoundChangeMessage();
-            String value = roundChangeMessage.getPreparedValue();
-            frequency.put(value, frequency.getOrDefault(value, 0) + 1);
-        });
+        // Check for the highest round change message and return the value, using a normal for loop (without lambdas)
+        int roundBegin = -1;
+        String valueToReturn = "";
 
-        // Only one value (if any, thus the optional) will have a frequency
-        // greater than or equal to the quorum size
-        return frequency.entrySet().stream().filter((Map.Entry<String, Integer> entry) -> {
-            return entry.getValue() >= quorumSize;
-        }).map((Map.Entry<String, Integer> entry) -> {
-            return entry.getKey();
-        }).findFirst();
+        for (Map.Entry<String, ConsensusMessage> entry : senderMap.entrySet()) {
+            RoundChangeMessage roundChangeMessage = entry.getValue().deserializeRoundChangeMessage();
+            if (roundChangeMessage.getPreparedRound() > roundBegin) {
+                roundBegin = roundChangeMessage.getPreparedRound();
+                valueToReturn = roundChangeMessage.getPreparedValue();
+            }
+        }
+
+        return Optional.of(valueToReturn);
     }
 
 
@@ -121,11 +119,8 @@ public class MessageBucket {
             }
         });
 
-        // Find the smallest round with a frequency greater than or equal to f + 1
-        return frequency.entrySet().stream()
-                .filter((Map.Entry<Integer, Integer> entry) -> entry.getKey() >= -1 && entry.getValue() >= f + 1)
-                .map(Map.Entry::getKey)
-                .min(Integer::compareTo);
+        // Find the smallest round
+        return frequency.keySet().stream().min(Integer::compareTo);
     }
 
 

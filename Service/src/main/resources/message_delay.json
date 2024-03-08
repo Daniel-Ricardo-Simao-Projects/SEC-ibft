@@ -33,6 +33,6 @@
         "port": 3004,
         "clientPort": 6004,
         "byzantineType": "NONE",
-        "messageDelay": 10000
+        "messageDelay": 1500
     }
 ]

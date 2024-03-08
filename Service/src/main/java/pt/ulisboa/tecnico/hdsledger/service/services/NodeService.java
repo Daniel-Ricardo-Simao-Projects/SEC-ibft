@@ -117,6 +117,8 @@ public class NodeService implements UDPService {
         int localConsensusInstance = this.consensusInstance.incrementAndGet();
         InstanceInfo existingConsensus = this.instanceInfo.put(localConsensusInstance, new InstanceInfo(value));
 
+        this.leaderConfig = nodesConfig[0];
+
         // If startConsensus was already called for a given round
         if (existingConsensus != null) {
             LOGGER.log(Level.INFO, MessageFormat.format("{0} - Node already started consensus for instance {1}",
@@ -157,7 +159,7 @@ public class NodeService implements UDPService {
 
             timerExpiredNewRound(localConsensusInstance);
 
-        }, 2000, TimeUnit.MILLISECONDS);
+        }, getRoundTimer(), TimeUnit.MILLISECONDS);
     }
 
     /*
@@ -431,11 +433,21 @@ public class NodeService implements UDPService {
 
             isRoundChanging = true;
 
+            resetTimer();
+
             RoundChangeMessage r = new RoundChangeMessage(instance.getPreparedValue(), instance.getPreparedRound());
+
+            int roundToSend = 0;
+
+            if(smallestRound.get() > instance.getCurrentRound()) {
+                roundToSend = smallestRound.get();
+            } else {
+                roundToSend = instance.getCurrentRound();
+            }
 
             ConsensusMessage consensusMessage = new ConsensusMessageBuilder(config.getId(), Message.Type.ROUND_CHANGE)
                     .setConsensusInstance(consensusInstance)
-                    .setRound(instance.getCurrentRound())
+                    .setRound(roundToSend)
                     .setMessage(r.toJson())
                     .build();
 
@@ -509,7 +521,14 @@ public class NodeService implements UDPService {
 
             timerExpiredNewRound(localConsensusInstance);
 
-        }, 2000, TimeUnit.MILLISECONDS);
+        }, getRoundTimer(), TimeUnit.MILLISECONDS);
+    }
+
+    private int getRoundTimer() {
+        int round = this.instanceInfo.get(this.consensusInstance.get()).getCurrentRound();
+        LOGGER.log(Level.SEVERE,
+                MessageFormat.format("{0} - Timer for round {1} is {2}ms", config.getId(), round, Math.pow(2, round) * 1000));
+        return (int) Math.pow(2, round) * 1000;
     }
 
     private void cancelTimer() {
