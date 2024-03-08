@@ -527,8 +527,8 @@ public class NodeService implements UDPService {
     private int getRoundTimer() {
         int round = this.instanceInfo.get(this.consensusInstance.get()).getCurrentRound();
         LOGGER.log(Level.SEVERE,
-                MessageFormat.format("{0} - Timer for round {1} is {2}ms", config.getId(), round, Math.pow(2, round) * 1000));
-        return (int) Math.pow(2, round) * 1000;
+                MessageFormat.format("{0} - Timer for round {1} is {2}ms", config.getId(), round, Math.pow(2, round) * 1000 + 2000));
+        return (int) Math.pow(2, round) * 1000 + 2000;
     }
 
     private void cancelTimer() {
