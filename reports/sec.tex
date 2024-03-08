@@ -58,20 +58,16 @@
 \section{Introduction}
 This report details the initial stage of development for the HDS Serenity Ledger project. Our analysis of the existing codebase revealed a strong foundation with implemented stubborn links, nodes, node services, and a partially implemented IBFT protocol lacking round change functionality.
 
-Stage 1 focused on building upon this base by implementing a client, a client service/library for interaction, the missing round change functionality within IBFT, improvements to the existing stubborn links, and the establishment of a testing framework. This report outlines the progress made in these areas, paving the way for a complete and operational distributed system.
+Stage 1 focused on building upon this base by implementing a client, a client service/library for interaction, the missing round change functionality within IBFT, improvements to the existing stubborn links, and the establishment of a testing system. This report outlines the progress made in these areas, paving the way for a complete and operational system.
 
 % Design
 \section{Design}
 
-\subsection{Client}
+\subsection{Client and Client Service}
 
-Leveraging the similarities between nodes and clients, we adopted a solution inspired by the existing node implementation.  Client configuration utilizes the same ProcessConfigBuilder to define settings.  However, to facilitate communication with clients, we introduced a new field named clientPort within the node configuration JSON file. This allows clients to connect to nodes using the designated port.
+Leveraging the similarities between nodes and clients, we adopted a solution inspired by the existing node implementation. Client configuration utilizes the same ProcessConfigBuilder to define settings. However, to facilitate communication with clients, we introduced a new field named clientPort within the node configuration JSON file. This allows clients to connect to nodes using the designated port.
 
-The core functionality of the client resides within a dedicated class responsible for receiving user input and forwarding it to the client service for proper handling.
-
-\subsection{Client Service}
-
-Focusing on seamless user interaction, we developed a client-side library to interact with the enhanced node service. This library acts as a bridge, allowing clients to effortlessly communicate with the network.  The node service itself underwent minor modifications to initiate a consensus round upon receiving a client request.  However, to ensure order and prevent overwhelming the system, the client library is designed to wait for a response from the server before accepting a new request. This ensures serialized communication and avoids potential conflicts.
+To ensure seamless user interaction, we developed a client-side library that acts as a bridge, allowing clients to effortlessly communicate with the network.  The node service itself underwent minor modifications to initiate a consensus round upon receiving a client request. However, to ensure order and prevent overwhelming the system, the client library is designed to wait for a response from the server before accepting a new request. This ensures serialized communication and avoids potential conflicts.
 
 \subsection{Links}
 Building upon the existing foundation of stubborn links, which ensure reliable message delivery, we aimed to enhance the security of our communication layer. Drawing from the theoretical concepts introduced in our lectures, we implemented authenticated perfect links. This approach adds a layer of authentication to messages exchanged between clients and nodes.
@@ -80,7 +76,7 @@ In essence, we implemented digital signatures for all messages. This involves si
 
 \subsection{Round Change}
 
-To ensure smooth transitions between consensus rounds within the IBFT protocol, we implemented a round change mechanism based on the algorithm outlined in the paper "The Istanbul BFT Consensus Algorithm" by Henrique Moniz.
+To ensure smooth transitions between consensus rounds within the IBFT protocol, we implemented the round change mechanism based on the algorithm outlined in the paper \textit{"The Istanbul BFT Consensus Algorithm"} by Henrique Moniz.
 
 This algorithm dictates a dynamic timeout value for each round. This timeout is calculated using an exponential function, where the function considers the current round number and outputs the corresponding waiting time in seconds.  As the round number increases, the timeout value increases exponentially. This approach prevents nodes from waiting indefinitely for a response in the case of failures and facilitates timely progression to the next round.
 

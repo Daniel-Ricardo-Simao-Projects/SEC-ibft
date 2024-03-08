@@ -1,6 +1,6 @@
 # Fdb version 4
-["pdflatex"] 1709911488.06366 "/home/simao/school/master/sec/project/SEC-ibft/reports/sec.tex" "build/sec.pdf" "sec" 1709911488.22442 0
-  "/home/simao/school/master/sec/project/SEC-ibft/reports/sec.tex" 1709911487.8916 5347 a16166dd18611963cf2271cf8b6f9ce3 ""
+["pdflatex"] 1709913067.48262 "/home/simao/school/master/sec/project/SEC-ibft/reports/sec.tex" "build/sec.pdf" "sec" 1709913067.62784 0
+  "/home/simao/school/master/sec/project/SEC-ibft/reports/sec.tex" 1709913067.15448 5107 e1c92ddac96a3cb3a536056789e81de3 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmbx12.tfm" 1136768653 1324 c910af8c371558dc20f2d7822f66fe64 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmmi12.tfm" 1136768653 1524 4414a8315f39513458b80dfc63bff03a ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmmi6.tfm" 1136768653 1512 f21f83efb36853c0b70002322c1ab3ad ""
@@ -12,9 +12,11 @@
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmsy10.tfm" 1136768653 1124 6c73e740cf17375f03eec0ee63599741 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmsy6.tfm" 1136768653 1116 933a60c408fc0a863a92debe84b2d294 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmsy8.tfm" 1136768653 1120 8b7d695260f3cff42e636090a8002094 ""
+  "/usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmti12.tfm" 1136768653 1484 ed72f8f5cf654cda15ecc8e32bfcbee5 ""
   "/usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb" 1248133631 32080 340ef9bf63678554ee606688e7b5339d ""
   "/usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb" 1248133631 32722 d7379af29a190c3f453aba36302ff5a9 ""
   "/usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb" 1248133631 32362 179c33bbf43f19adbb3825bb4e36e57a ""
+  "/usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmti12.pfb" 1248133631 36118 fad905eba93cff5bce1e185fe980a177 ""
   "/usr/share/texlive/texmf-dist/tex/context/base/mkii/supp-pdf.mkii" 1689984000 71627 94eb9990bed73c364d7f53f960cc8c5b ""
   "/usr/share/texlive/texmf-dist/tex/generic/iftex/iftex.sty" 1644112042 7237 bdd120a32c8fdb4b433cf9ca2e7cd98a ""
   "/usr/share/texlive/texmf-dist/tex/generic/iftex/ifvtex.sty" 1572645307 1057 525c2192b5febbd8c1f662c9468335bb ""
@@ -42,9 +44,9 @@
   "/usr/share/texlive/texmf-dist/web2c/texmf.cnf" 1689984000 40900 887e0dc8cac988a9e9c574af364cf837 ""
   "/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map" 1705570592.50902 336426 1c4dd712afe807a2c1952452131777df ""
   "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1705570577 6477881 c23f2ba7ce09c41d50176e3164e9973c ""
-  "build/sec.aux" 1709911488.1966 869 e34d156a1cf7779d579adea990f2a90b "pdflatex"
-  "build/sec.toc" 1709911488.1976 483 f6ddd6338be12d7345a1266928559d54 "pdflatex"
-  "sec.tex" 1709911487.8916 5347 a16166dd18611963cf2271cf8b6f9ce3 ""
+  "build/sec.aux" 1709913067.60249 781 5eac0404611d14e6a63ab7506b5d6414 "pdflatex"
+  "build/sec.toc" 1709913067.60349 436 440e1869014a26d36dcc9671c76c1802 "pdflatex"
+  "sec.tex" 1709913067.15448 5107 e1c92ddac96a3cb3a536056789e81de3 ""
   (generated)
   "build/sec.aux"
   "build/sec.log"
