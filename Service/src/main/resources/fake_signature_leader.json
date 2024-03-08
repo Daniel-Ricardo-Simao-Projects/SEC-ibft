@@ -1,0 +1,38 @@
+[
+    {   
+        "id": "1",
+        "isLeader": true,
+        "hostname": "localhost",
+        "port": 3001,
+        "clientPort": 6001,
+        "byzantineType": "FAKE_SIGNATURE",
+        "messageDelay": 0
+    },
+    {
+        "id": "2",
+        "isLeader": false,
+        "hostname": "localhost",
+        "port": 3002,
+        "clientPort": 6002,
+        "byzantineType": "NONE",
+        "messageDelay": 0
+    },
+    {
+        "id": "3",
+        "isLeader": false,
+        "hostname": "localhost",
+        "port": 3003,
+        "clientPort": 6003,
+        "byzantineType": "NONE",
+        "messageDelay": 0
+    },
+    {
+        "id": "4",
+        "isLeader": false,
+        "hostname": "localhost",
+        "port": 3004,
+        "clientPort": 6004,
+        "byzantineType": "NONE",
+        "messageDelay": 0
+    }
+]

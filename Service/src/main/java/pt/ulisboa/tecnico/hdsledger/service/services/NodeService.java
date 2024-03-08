@@ -137,7 +137,7 @@ public class NodeService implements UDPService {
         }
 
         // Leader broadcasts PRE-PREPARE message
-        if (this.config.isLeader() /* && !this.config.getId().equals("1") && !this.config.getId().equals("2") */) {
+        if (this.config.isLeader()) {
             InstanceInfo instance = this.instanceInfo.get(localConsensusInstance);
             LOGGER.log(Level.INFO,
                     MessageFormat.format("{0} - Node is leader, sending PRE-PREPARE message", config.getId()));

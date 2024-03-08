@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 
 import pt.ulisboa.tecnico.hdsledger.communication.Message.Type;
 import pt.ulisboa.tecnico.hdsledger.utilities.*;
+import pt.ulisboa.tecnico.hdsledger.utilities.ProcessConfig.ByzantineType;
 
 import java.io.IOException;
 import java.net.*;
@@ -111,8 +112,14 @@ public class Link {
 
                     byte[] digitalSignature = null;
                     try {
-                        String path = "../Utilities/keys/" + config.getId() + "Priv.key";
-                        digitalSignature = Authenticate.createDigitalSignature(value, Authenticate.readPrivateKey(path));
+                        String path;
+                        // bizantine test - fake signature of leader
+                        if (config.getByzantineType() == ByzantineType.FAKE_SIGNATURE) {
+                            path = "../Utilities/keys/" + "2" + "Priv.key";
+                        } else {
+                            path = "../Utilities/keys/" + config.getId() + "Priv.key";
+                        }
+                            digitalSignature = Authenticate.createDigitalSignature(value, Authenticate.readPrivateKey(path));
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -155,7 +162,7 @@ public class Link {
                         break;
 
                     sleepTime <<= 1;
-                    if (sleepTime > 10000) {
+                    if (sleepTime > 10000) { // TODO save time as a variable
                         stopSending = true;
                         break;
                     }
@@ -245,15 +252,16 @@ public class Link {
             try {
                 String path = "../Utilities/keys/" + senderId + "Pub.key";
                 isVerified = Authenticate.verifyDigitalSignature(value, digitalSignature, Authenticate.readPublicKey(path));
-            } catch (Exception e) {
-                e.printStackTrace();
-
                 if (!isVerified) {
-                    LOGGER.log(Level.INFO, MessageFormat.format("{0} - Message {1} from {2} with message ID {3} was not correctly verified",
-                        config.getId(), message.getType(), senderId, messageId));
+                    LOGGER.log(Level.WARNING,
+                            MessageFormat.format(
+                                    "{0} - Message {1} from {2} with message ID {3} was not correctly verified",
+                                    config.getId(), message.getType(), senderId, messageId));
                     message.setType(Message.Type.IGNORE);
                     return message;
                 }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
 

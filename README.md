@@ -88,6 +88,7 @@ After running the script 'puppet-master.py' you will be prompted to choose a tes
 3. **Message Delay** - A test where all the nodes have different message delays
 4. **Leader Delay** - A test where the leader has a message delay, and as consequence, there is a round change
 5. **Round Change with Previous Prepare** - A test to check if the system can handle a round change when there was already a prepare message from some nodes
+6. **Leader with fake signature** - A test to check if the nodes verify signatures from received messages
 
 ## Maven
 

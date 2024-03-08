@@ -53,6 +53,7 @@ public class ProcessConfig {
         FAKE_LEADER,            // pretend to be the leader
         EQUIVOCATION,           // send different messages to different nodes
         SILENT_COMMIT,          // do not broadcast commit message
+        FAKE_SIGNATURE          // use a not recongized signature
     }
 
     public ByzantineType getByzantineType() {

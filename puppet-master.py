@@ -15,6 +15,7 @@ server_configs = [
     "message_delay.json",
     "leader_delay.json",
     "round_change_prev_prepare.json",
+    "fake_signature_leader.json",
 ]
 
 choiceStr = input("Choose a configuration:\n"
@@ -23,6 +24,7 @@ choiceStr = input("Choose a configuration:\n"
                   "3 - Message Delay\n"
                   "4 - Leader Delay\n"
                   "5 - Round Change With Previous Prepare\n"
+                  "6 - Fake Signature Leader\n"
                   ">> ")
 
 choice = int(choiceStr)
