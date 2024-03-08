@@ -138,6 +138,7 @@ public class Link {
                     return;
                 }
 
+                boolean stopSending = false;
                 for (;;) {
                     LOGGER.log(Level.INFO, MessageFormat.format(
                             "{0} - Sending {1} message to {2}:{3} with message ID {4} and latency {5} - Attempt #{6}", config.getId(),
@@ -154,10 +155,19 @@ public class Link {
                         break;
 
                     sleepTime <<= 1;
+                    if (sleepTime > 10000) {
+                        stopSending = true;
+                        break;
+                    }
+                    
                 }
-
-                LOGGER.log(Level.INFO, MessageFormat.format("{0} - Message {1} sent to {2}:{3} successfully",
-                        config.getId(), data.getType(), destAddress, destPort));
+                if (!stopSending) {
+                    LOGGER.log(Level.INFO, MessageFormat.format("{0} - Message {1} sent to {2}:{3} successfully",
+                            config.getId(), data.getType(), destAddress, destPort));
+                } else {
+                    LOGGER.log(Level.WARNING, MessageFormat.format("{0} - Message {1} sent to {2}:{3} failed - TIMEOUT",
+                            config.getId(), data.getType(), destAddress, destPort));
+                }
             } catch (InterruptedException | UnknownHostException e) {
                 e.printStackTrace();
             }

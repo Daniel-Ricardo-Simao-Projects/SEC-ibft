@@ -40,6 +40,7 @@ public class Node {
                     nodeConfig.getId(), nodeConfig.getHostname(), nodeConfig.getPort(),
                     nodeConfig.isLeader(), nodeConfig.getMessageDelay(), nodeConfig.getByzantineType()));
             
+            // bizantine test
             if (nodeConfig.getByzantineType() == ByzantineType.FAKE_LEADER) {
                 nodeConfig.setLeader(true);
                 // Set the leader to itself inside node configs
