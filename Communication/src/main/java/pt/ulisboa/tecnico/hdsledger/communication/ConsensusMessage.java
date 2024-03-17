@@ -76,6 +76,6 @@ public class ConsensusMessage extends Message {
     }
 
     public void setDigitalSignature(byte[] digitalSignature) {
-        super.setSignature(digitalSignature);
+        // TODO: Implement this
     }
 }

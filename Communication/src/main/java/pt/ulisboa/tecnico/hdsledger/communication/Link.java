@@ -98,33 +98,19 @@ public class Link {
                     throw new HDSSException(ErrorMessage.NoSuchNode);
 
                 data.setMessageId(messageCounter.getAndIncrement());
-                
-                // Set digital signature
-                if (data instanceof ConsensusMessage || data instanceof AppendRequest) {
-                    String value = null;
-                    if (data instanceof ConsensusMessage) {
-                        ConsensusMessage consensusMessage = (ConsensusMessage) data;
-                        value = consensusMessage.getMessage();
-                    } else if (data instanceof AppendRequest) {
-                        AppendRequest appendRequest = (AppendRequest) data;
-                        value = appendRequest.getStringToAppend();
-                    }
 
-                    byte[] digitalSignature = null;
-                    try {
-                        String path;
-                        // bizantine test - fake signature of leader
-                        if (config.getByzantineType() == ByzantineType.FAKE_SIGNATURE) {
-                            path = "../Utilities/keys/" + "2" + "Priv.key";
-                        } else {
-                            path = "../Utilities/keys/" + config.getId() + "Priv.key";
-                        }
-                            digitalSignature = Authenticate.createDigitalSignature(value, Authenticate.readPrivateKey(path));
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
+                System.out.println(data.toString());
 
-                    data.setSignature(digitalSignature);
+                // Set MAC for message
+                byte[] buf = new Gson().toJson(data).getBytes();
+                byte[] mac = null;
+
+                try {
+                    String path = "../Utilities/keys/symmetric.key";
+                    mac = Authenticate.createMAC(buf, SymmetricKeyGenerator.read(path));
+                    data.setMac(mac);
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
 
                 // If the message is not ACK, it will be resent
@@ -235,28 +221,18 @@ public class Link {
 
         if (!nodes.containsKey(senderId))
             throw new HDSSException(ErrorMessage.NoSuchNode);
-
-        // Verify signature
-        String value = null;
-        if (message instanceof ConsensusMessage) {
-            ConsensusMessage consensusMessage = (ConsensusMessage) message;
-            value = consensusMessage.getMessage();
-        } else if (message instanceof AppendRequest) {
-            AppendRequest appendRequest = (AppendRequest) message;
-            value = appendRequest.getStringToAppend();
-        }         
-
-        if (message instanceof ConsensusMessage || message instanceof AppendRequest) {
-            byte[] digitalSignature = message.getSignature();
-            boolean isVerified = false;
+        
+        // Verify MAC
+        byte[] mac = message.popMac();
+        if (message instanceof AppendRequest) {
+            byte[] buf = new Gson().toJson((AppendRequest) message).getBytes();
             try {
-                String path = "../Utilities/keys/" + senderId + "Pub.key";
-                isVerified = Authenticate.verifyDigitalSignature(value, digitalSignature, Authenticate.readPublicKey(path));
-                if (!isVerified) {
+                String path = "../Utilities/keys/symmetric.key";
+                if (!Authenticate.verifyMAC(mac, buf, SymmetricKeyGenerator.read(path))) {
                     LOGGER.log(Level.WARNING,
-                            MessageFormat.format(
-                                    "{0} - Message {1} from {2} with message ID {3} was not correctly verified",
-                                    config.getId(), message.getType(), senderId, messageId));
+                        MessageFormat.format(
+                            "{0} - Message {1} from {2} with message ID {3} was not correctly verified",
+                            config.getId(), message.getType(), senderId, messageId));
                     message.setType(Message.Type.IGNORE);
                     return message;
                 }
@@ -264,6 +240,39 @@ public class Link {
                 e.printStackTrace();
             }
         }
+        else if (message instanceof AppendResponse) {
+            byte[] buf = new Gson().toJson((AppendResponse) message).getBytes();
+            try {
+                String path = "../Utilities/keys/symmetric.key";
+                if (!Authenticate.verifyMAC(mac, buf, SymmetricKeyGenerator.read(path))) {
+                    LOGGER.log(Level.WARNING,
+                        MessageFormat.format(
+                            "{0} - Message {1} from {2} with message ID {3} was not correctly verified",
+                            config.getId(), message.getType(), senderId, messageId));
+                    message.setType(Message.Type.IGNORE);
+                    return message;
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        else if (message instanceof ConsensusMessage) {
+            byte[] buf = new Gson().toJson((ConsensusMessage) message).getBytes();
+            try {
+                String path = "../Utilities/keys/symmetric.key";
+                if (!Authenticate.verifyMAC(mac, buf, SymmetricKeyGenerator.read(path))) {
+                    LOGGER.log(Level.WARNING,
+                        MessageFormat.format(
+                            "{0} - Message {1} from {2} with message ID {3} was not correctly verified",
+                            config.getId(), message.getType(), senderId, messageId));
+                    message.setType(Message.Type.IGNORE);
+                    return message;
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        message.setMac(mac); // Restore MAC for message
 
         // Handle ACKS, since it's possible to receive multiple acks from the same
         // message

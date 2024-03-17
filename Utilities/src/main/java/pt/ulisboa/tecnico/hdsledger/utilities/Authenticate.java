@@ -1,7 +1,9 @@
 package pt.ulisboa.tecnico.hdsledger.utilities;
 
+import javax.crypto.Mac;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.security.Key;
 import java.security.KeyFactory;
 import java.security.PrivateKey;
 import java.security.PublicKey;
@@ -9,9 +11,6 @@ import java.security.Signature;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Arrays;
-
-import javax.crypto.Mac;
-import javax.crypto.SecretKey;
 
 public class Authenticate {
 
@@ -33,15 +32,14 @@ public class Authenticate {
         return signature.verify(signatureBytes);
     }
 
-    private static byte[] createMAC(byte[] bytes, SecretKey key) throws Exception {
+    public static byte[] createMAC(byte[] bytes, Key key) throws Exception {
         Mac mac = Mac.getInstance(MAC_ALGO);
         mac.init(key);
         byte[] macBytes = mac.doFinal(bytes);
-
         return macBytes;
     }
 
-    private static boolean verifyMAC(byte[] receivedMacBytes, byte[] bytes, SecretKey key) throws Exception {
+    public static boolean verifyMAC(byte[] receivedMacBytes, byte[] bytes, Key key) throws Exception {
         Mac mac = Mac.getInstance(MAC_ALGO);
         mac.init(key);
         byte[] recomputedMacBytes = mac.doFinal(bytes);

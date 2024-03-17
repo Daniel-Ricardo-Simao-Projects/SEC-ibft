@@ -10,8 +10,8 @@ public class Message implements Serializable {
     private int messageId;
     // Message type
     private Type type;
-    // Digital signature
-    private byte[] signature;
+    // MAC of the message
+    private byte[] mac = null;
 
     public enum Type {
         APPEND, PRE_PREPARE, PREPARE, COMMIT, ROUND_CHANGE, ACK, IGNORE, APPEND_RESPONSE;
@@ -46,11 +46,17 @@ public class Message implements Serializable {
         this.type = type;
     }
 
-    public byte[] getSignature() {
-        return signature;
+    public byte[] getMac() {
+        return mac;
     }
 
-    public void setSignature(byte[] signature) {
-        this.signature = signature;
+    public byte[] popMac() {
+        byte[] mac = this.mac;
+        this.mac = null;
+        return mac;
+    }
+
+    public void setMac(byte[] mac) {
+        this.mac = mac;
     }
 }
