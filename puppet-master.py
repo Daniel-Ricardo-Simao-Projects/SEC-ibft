@@ -46,6 +46,10 @@ os.system("mkdir Utilities/keys/")
 # Compile RSAKeyGenerator
 os.system("javac -d Utilities/out Utilities/src/main/java/pt/ulisboa/tecnico/hdsledger/utilities/RSAKeyGenerator.java")
 
+# Compile SymmetricKeyGenerator
+os.system("javac -d Utilities/out Utilities/src/main/java/pt/ulisboa/tecnico/hdsledger/utilities/SymmetricKeyGenerator.java")
+os.system("java -cp Utilities/out pt.ulisboa.tecnico.hdsledger.utilities.SymmetricKeyGenerator Utilities/keys/symmetric.key")
+
 # Spawn blockchain nodes
 pos = 0
 with open(f"Service/src/main/resources/{server_config}") as f:
