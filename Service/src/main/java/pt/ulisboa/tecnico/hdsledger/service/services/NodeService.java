@@ -126,16 +126,6 @@ public class NodeService implements UDPService {
             return;
         }
 
-        // Only start a consensus instance if the last one was decided
-        // We need to be sure that the previous value has been decided
-        while (lastDecidedConsensusInstance.get() < localConsensusInstance - 1) {
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-
         // Leader broadcasts PRE-PREPARE message
         if (this.config.isLeader()) {
             InstanceInfo instance = this.instanceInfo.get(localConsensusInstance);
@@ -376,6 +366,16 @@ public class NodeService implements UDPService {
             instance.setCommittedRound(round);
 
             String value = commitValue.get();
+
+            // Only start a consensus instance if the last one was decided
+            // We need to be sure that the previous value has been decided
+            while (lastDecidedConsensusInstance.get() < this.consensusInstance.get() - 1) {
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
 
             // Append value to the ledger (must be synchronized to be thread-safe)
             synchronized(ledger) {
