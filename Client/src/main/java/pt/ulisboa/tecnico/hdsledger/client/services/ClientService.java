@@ -36,6 +36,10 @@ public class ClientService {
 
         AppendRequest request = new AppendRequest(AppendRequest.Type.APPEND, this.config.getId(), requestId, stringToAppend);
 
+        // Sign data
+        byte[] signature = Authenticate.signData(stringToAppend, "../Utilities/keys/" + this.config.getId() + "Priv.key");
+        request.setSignature(signature);
+
         this.link.broadcast(request);
 
         // Use CountDownLatch to block until the response is received

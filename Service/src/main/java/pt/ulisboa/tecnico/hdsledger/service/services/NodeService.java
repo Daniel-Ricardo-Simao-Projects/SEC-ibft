@@ -111,7 +111,7 @@ public class NodeService implements UDPService {
      *
      * @param inputValue Value to value agreed upon
      */
-    public void startConsensus(String value) {
+    public void startConsensus(String value, String clientId, byte[] clientSignature) {
 
         // Set initial consensus values
         int localConsensusInstance = this.consensusInstance.incrementAndGet();
@@ -128,6 +128,17 @@ public class NodeService implements UDPService {
 
         // Leader broadcasts PRE-PREPARE message
         if (this.config.isLeader()) {
+            
+            // Verify client signature
+            if (!Authenticate.verifySignature(value, clientSignature, "../Utilities/keys/" + clientId + "Pub.key")) {
+                LOGGER.log(Level.WARNING,
+                        MessageFormat.format("{0} - Invalid client signature for value {1}", config.getId(), value));
+                return;
+            } else {
+                LOGGER.log(Level.INFO,
+                        MessageFormat.format("{0} - Valid client signature for value {1}", config.getId(), value));
+            }
+            
             InstanceInfo instance = this.instanceInfo.get(localConsensusInstance);
             LOGGER.log(Level.INFO,
                     MessageFormat.format("{0} - Node is leader, sending PRE-PREPARE message", config.getId()));

@@ -39,7 +39,7 @@ public class SerenityLedgerService implements UDPService {
     public CompletableFuture<AppendResponse> callConsensusInstance(AppendRequest request) {
         CompletableFuture<AppendResponse> future = new CompletableFuture<>();
 
-        service.startConsensus(request.getStringToAppend());
+        service.startConsensus(request.getStringToAppend(), request.getSenderId(), request.getSignature());
 
         // Use a separate thread to check for consensus completion
         new Thread(() -> {

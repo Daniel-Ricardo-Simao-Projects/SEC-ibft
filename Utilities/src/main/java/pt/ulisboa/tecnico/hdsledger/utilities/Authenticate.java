@@ -16,7 +16,27 @@ public class Authenticate {
 
     private static final String MAC_ALGO = "HmacSHA256";
 
-    public static byte[] createDigitalSignature(String data, PrivateKey privateKey) throws Exception {
+    public static byte[] signData(String data, String privateKeyPath) {
+        try {
+            PrivateKey privateKey = readPrivateKey(privateKeyPath);
+            return createDigitalSignature(data, privateKey);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public static boolean verifySignature(String data, byte[] signatureBytes, String publicKeyPath) {
+        try {
+            PublicKey publicKey = readPublicKey(publicKeyPath);
+            return verifyDigitalSignature(data, signatureBytes, publicKey);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    private static byte[] createDigitalSignature(String data, PrivateKey privateKey) throws Exception {
         Signature signature = Signature.getInstance("SHA256withRSA");
         signature.initSign(privateKey);
         signature.update(data.getBytes());
@@ -24,7 +44,7 @@ public class Authenticate {
         return signatureBytes;
     }
 
-    public static boolean verifyDigitalSignature(String data, byte[] signatureBytes, PublicKey publicKey)
+    private static boolean verifyDigitalSignature(String data, byte[] signatureBytes, PublicKey publicKey)
             throws Exception {
         Signature signature = Signature.getInstance("SHA256withRSA");
         signature.initVerify(publicKey);
@@ -46,14 +66,14 @@ public class Authenticate {
         return Arrays.equals(receivedMacBytes, recomputedMacBytes);
     }
 
-    public static PrivateKey readPrivateKey(String privateKeyPath) throws Exception {
+    private static PrivateKey readPrivateKey(String privateKeyPath) throws Exception {
         byte[] privEncoded = Files.readAllBytes(Paths.get(privateKeyPath));
         PKCS8EncodedKeySpec privSpec = new PKCS8EncodedKeySpec(privEncoded);
         KeyFactory keyFacPriv = KeyFactory.getInstance("RSA");
         return keyFacPriv.generatePrivate(privSpec);
     }
 
-    public static PublicKey readPublicKey(String publicKeyPath) throws Exception {
+    private static PublicKey readPublicKey(String publicKeyPath) throws Exception {
         byte[] pubEncoded = Files.readAllBytes(Paths.get(publicKeyPath));
         X509EncodedKeySpec pubSpec = new X509EncodedKeySpec(pubEncoded);
         KeyFactory keyFacPub = KeyFactory.getInstance("RSA");

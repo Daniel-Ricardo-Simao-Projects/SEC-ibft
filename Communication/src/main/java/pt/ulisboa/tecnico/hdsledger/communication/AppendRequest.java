@@ -6,6 +6,8 @@ public class AppendRequest extends Message {
 
     private String stringToAppend;
 
+    private byte[] signature;
+
     public AppendRequest(Type type, String senderId, int requestId, String stringToAppend) {
         super(senderId, type);
         this.stringToAppend = stringToAppend;
@@ -26,5 +28,13 @@ public class AppendRequest extends Message {
 
     public void setRequestId(int requestId) {
         this.requestId = requestId;
+    }
+
+    public byte[] getSignature() {
+        return signature;
+    }
+
+    public void setSignature(byte[] signature) {
+        this.signature = signature;
     }
 }
