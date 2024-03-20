@@ -1,8 +1,8 @@
 # 1. Corrigir Stage 1
 
 ## 1.1. Condição de Validity no IBFT
-1. Mudar link de Digital Signature para MAC
-2. Quando o cliente manda pedido tem que fazer DS do valor + nonce
+~~1. Mudar link de Digital Signature para MAC~~
+~~2. Quando o cliente manda pedido tem que fazer DS do valor~~ + nonce!
 3. Os nós quando recebem verificam se o valor é válido
 4. Para qualquer tipo de mensagens, quem envia tem que assinar o valor por cima e quem recebe tem que validar
 
@@ -18,7 +18,7 @@
     - Justify PrePrepare
 
 ## 1.4. Execução "concorrente" de instâncias de consenso
-1. Mudar o while da linha 131 do NodeService para outro sitio do algoritmo. As instancias do algoritmo param sempre no uponCommit caso estejam no "futuro"
+~~1. Mudar o while da linha 131 do NodeService para outro sitio do algoritmo. As instancias do algoritmo param sempre no uponCommit caso estejam no "futuro"~~
 
 ## 1.5. Camadas de abstração nos servidores (Library - Consensus - Application)
 1. Mudar ledger de sítio (tirar de NodeService e pôr no SerenityLedgerService)
@@ -39,6 +39,11 @@ O que são?
 Como?
 
 ## 2.3. Criar conceito de bloco, com os valores a serem strings á mesma e tendo 1 transação por bloco
+1. Criar noção base de bloco em que este deve ter os campos:
+    - Transação (tx)
+    - Client ID (p/tx)
+    - Client Signature (p/tx)
+    
 
 ## 2.4. Várias transações por bloco
 
