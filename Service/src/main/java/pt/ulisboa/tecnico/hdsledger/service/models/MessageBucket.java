@@ -1,9 +1,8 @@
 package pt.ulisboa.tecnico.hdsledger.service.models;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import pt.ulisboa.tecnico.hdsledger.communication.CommitMessage;
 import pt.ulisboa.tecnico.hdsledger.communication.ConsensusMessage;
@@ -28,9 +27,9 @@ public class MessageBucket {
 
     /*
      * Add a message to the bucket
-     * 
+     *
      * @param consensusInstance
-     * 
+     *
      * @param message
      */
     public void addMessage(ConsensusMessage message) {
@@ -78,7 +77,115 @@ public class MessageBucket {
         }).findFirst();
     }
 
-    public Optional<String> hasValidRoundChangeQuorum(String nodeId, int instance, int round) {
+    // justifyPrePrepare
+
+    /*  return true if it has 2f+1 valid round change messages
+    to be valid it should have valid signature <- TODO */
+    public boolean hasValidRoundChangeQuorum(String nodeId, int instance, int round) {
+
+        Map<Integer, Map<String, ConsensusMessage>> roundMap = bucket.get(instance);
+        if (roundMap == null) {
+            return false; // or handle the case where roundMap is null
+        }
+
+        Map<String, ConsensusMessage> senderMap = roundMap.get(round);
+        if (senderMap == null) {
+            return false; // or handle the case where senderMap is null
+        }
+
+        // Check for the highest round change message and return the value, using a normal for loop (without lambdas)
+        int roundChangeCount = 0;
+
+        for (Map.Entry<String, ConsensusMessage> entry : senderMap.entrySet()) {
+            RoundChangeMessage roundChangeMessage = entry.getValue().deserializeRoundChangeMessage();
+            if (roundChangeMessage.getPreparedRound() >= -1) {
+                roundChangeCount++;
+            }
+        }
+
+        return roundChangeCount >= quorumSize;
+    }
+
+    /* returns true if all the round change messages haven't a prepared round neither a prepared value
+        returns true if it has a valid quorum of prepares with pr and pv == highestPrepare(Quorum of RoundChange)
+        returns false otherwise */
+    public boolean justifyRoundChange(String nodeId, int instance, int round) {
+
+        // Get RoundChange messages
+        Map<String, ConsensusMessage> roundChangeMessages = bucket.get(instance).get(round);
+
+        // If all the round change messages haven't a prepared round neither a prepared value return true
+        if (roundChangeMessages.values().stream().allMatch((message) -> {
+            RoundChangeMessage roundChangeMessage = message.deserializeRoundChangeMessage();
+            return roundChangeMessage.getPreparedRound() == -1 && roundChangeMessage.getPreparedValue().equals("");
+        })) {
+
+            return true;
+        }
+
+        // Get the highest prepared round and value
+        Optional<Map<Integer, String>> highestPrepared = highestPrepared(nodeId, instance, round);
+
+        // If there is no highest prepared round and value return false
+        if (!highestPrepared.isPresent()) {
+            return false;
+        }
+
+        // Get the highest prepared round and value
+        Map<Integer, String> highestPreparedMap = highestPrepared.get();
+        int highestPreparedRound = highestPreparedMap.keySet().iterator().next();
+
+        // Iterate over round change messages, check if any of them has a valid quorum of prepares with pr and pv == highestPrepare(Quorum of RoundChange)
+        for (ConsensusMessage message : roundChangeMessages.values()) {
+            RoundChangeMessage roundChangeMessage = message.deserializeRoundChangeMessage();
+            List<ConsensusMessage> prepareMessages = roundChangeMessage.getPrepareMessages();
+
+            // Check if a valid quorum of prepares with pr == highestPreparedRound and pv == highestPreparedValue
+            if (prepareMessages.stream().filter((prepareMessage) -> {
+                PrepareMessage prepare = prepareMessage.deserializePrepareMessage();
+
+                return prepareMessage.getRound() == highestPreparedRound && prepare.getValue().equals(highestPreparedMap.get(highestPreparedRound));
+            }).count() >= quorumSize) {
+
+                return true;
+            }
+        }
+
+
+        return false;
+    }
+
+    // returns prepared round and prepared value (an integer and a string) of the RoundChange message with the highest pr
+    public Optional<Map<Integer, String>> highestPrepared(String nodeId, int instance, int round) {
+
+        // Get RoundChange messages
+        Map<String, ConsensusMessage> roundChangeMessages = bucket.get(instance).get(round);
+
+        int highestPreparedRound = -1;
+        String highestPreparedValue = "";
+
+        // Iterate over round change messages, get the highest prepared round and value
+        for (ConsensusMessage message : roundChangeMessages.values()) {
+            RoundChangeMessage roundChangeMessage = message.deserializeRoundChangeMessage();
+            if (roundChangeMessage.getPreparedRound() > highestPreparedRound) {
+                highestPreparedRound = roundChangeMessage.getPreparedRound();
+                highestPreparedValue = roundChangeMessage.getPreparedValue();
+            }
+        }
+
+        if (highestPreparedRound != -1) {
+            Map<Integer, String> highestPrepared = new HashMap<>();
+            highestPrepared.put(highestPreparedRound, highestPreparedValue);
+
+
+            return Optional.of(highestPrepared);
+        }
+
+
+        return Optional.empty();
+    }
+
+    /*public Optional<String> hasValidRoundChangeQuorum(String nodeId, int instance, int round) {
         Map<Integer, Map<String, ConsensusMessage>> roundMap = bucket.get(instance);
         if (roundMap == null) {
             return Optional.empty(); // or handle the case where roundMap is null
@@ -102,7 +209,7 @@ public class MessageBucket {
         }
 
         return Optional.of(valueToReturn);
-    }
+    }*/
 
 
     public Optional<Integer> findSmallestValidRoundChange(String nodeId, int instance, int currentRound) {
@@ -121,6 +228,15 @@ public class MessageBucket {
 
         // Find the smallest round
         return frequency.keySet().stream().min(Integer::compareTo);
+    }
+
+    // Given an instance and a round, returns list of messages
+    public List<ConsensusMessage> getPrepareMessages(int instance, int round) {
+        // get all messages from the bucket with the given instance and round
+        Map<String, ConsensusMessage> roundMessages = bucket.get(instance).get(round);
+
+        // return the list of consensus messages
+        return roundMessages.values().stream().collect(Collectors.toList());
     }
 
 
