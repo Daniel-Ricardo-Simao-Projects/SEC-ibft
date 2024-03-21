@@ -10,10 +10,13 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 
+import com.google.gson.Gson;
+
 import pt.ulisboa.tecnico.hdsledger.communication.*;
 import pt.ulisboa.tecnico.hdsledger.communication.builder.ConsensusMessageBuilder;
 import pt.ulisboa.tecnico.hdsledger.service.models.InstanceInfo;
 import pt.ulisboa.tecnico.hdsledger.service.models.MessageBucket;
+import pt.ulisboa.tecnico.hdsledger.service.state.Block;
 import pt.ulisboa.tecnico.hdsledger.utilities.CustomLogger;
 import pt.ulisboa.tecnico.hdsledger.utilities.ProcessConfig;
 import pt.ulisboa.tecnico.hdsledger.utilities.ProcessConfig.ByzantineType;
@@ -111,7 +114,12 @@ public class NodeService implements UDPService {
      *
      * @param inputValue Value to value agreed upon
      */
-    public void startConsensus(String value, String clientId, byte[] clientSignature) {
+    public void startConsensus(String blockSerialized) {
+
+        Block block = new Gson().fromJson(blockSerialized, Block.class);
+        String value = block.getValue();
+        String clientId = block.getClientID();
+        byte[] clientSignature = block.getSignature();
 
         // Set initial consensus values
         int localConsensusInstance = this.consensusInstance.incrementAndGet();
@@ -142,7 +150,7 @@ public class NodeService implements UDPService {
             InstanceInfo instance = this.instanceInfo.get(localConsensusInstance);
             LOGGER.log(Level.INFO,
                     MessageFormat.format("{0} - Node is leader, sending PRE-PREPARE message", config.getId()));
-            this.link.broadcast(this.createConsensusMessage(value, localConsensusInstance, instance.getCurrentRound()));
+            this.link.broadcast(this.createConsensusMessage(blockSerialized, localConsensusInstance, instance.getCurrentRound()));
         } else {
             LOGGER.log(Level.INFO,
                     MessageFormat.format("{0} - Node is not leader, waiting for PRE-PREPARE message", config.getId()));
@@ -156,7 +164,7 @@ public class NodeService implements UDPService {
             LOGGER.log(Level.INFO,
                     MessageFormat.format("{0} - Node timer expired", config.getId()));
 
-            this.instanceInfo.put(localConsensusInstance, new InstanceInfo(value));
+            this.instanceInfo.put(localConsensusInstance, new InstanceInfo(blockSerialized));
 
             timerExpiredNewRound(localConsensusInstance);
 
@@ -182,7 +190,7 @@ public class NodeService implements UDPService {
 
         PrePrepareMessage prePrepareMessage = message.deserializePrePrepareMessage();
 
-        String value = prePrepareMessage.getValue();
+        String blockSerialized = prePrepareMessage.getValue();
 
         LOGGER.log(Level.INFO,
                 MessageFormat.format(
@@ -198,10 +206,25 @@ public class NodeService implements UDPService {
             return;
         }
 
+        // Verify client signature
+        Block block = new Gson().fromJson(blockSerialized, Block.class);
+        String value = block.getValue();
+        String clientId = block.getClientID();
+        byte[] clientSignature = block.getSignature();
+
+        if (!Authenticate.verifySignature(value, clientSignature, "../Utilities/keys/" + clientId + "Pub.key")) {
+            LOGGER.log(Level.WARNING,
+                MessageFormat.format("{0} - Invalid client signature for value {1}", config.getId(), value));
+            return;
+        } else {
+            LOGGER.log(Level.INFO,
+                MessageFormat.format("{0} - Valid client signature for value {1}", config.getId(), value));
+        }
+
         resetTimer();
 
         // Set instance value
-        this.instanceInfo.putIfAbsent(consensusInstance, new InstanceInfo(value));
+        this.instanceInfo.putIfAbsent(consensusInstance, new InstanceInfo(blockSerialized));
 
         // Within an instance of the algorithm, each upon rule is triggered at most once
         // for any round r

@@ -6,6 +6,7 @@ import pt.ulisboa.tecnico.hdsledger.communication.Message;
 import pt.ulisboa.tecnico.hdsledger.communication.Link;
 import pt.ulisboa.tecnico.hdsledger.utilities.CustomLogger;
 import pt.ulisboa.tecnico.hdsledger.utilities.ProcessConfig;
+import pt.ulisboa.tecnico.hdsledger.service.state.Block;
 
 import java.io.IOException;
 import java.text.MessageFormat;
@@ -13,6 +14,8 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
+
+import com.google.gson.Gson;
 
 public class SerenityLedgerService implements UDPService {
     private static final CustomLogger LOGGER = new CustomLogger(SerenityLedgerService.class.getName());
@@ -39,7 +42,11 @@ public class SerenityLedgerService implements UDPService {
     public CompletableFuture<AppendResponse> callConsensusInstance(AppendRequest request) {
         CompletableFuture<AppendResponse> future = new CompletableFuture<>();
 
-        service.startConsensus(request.getStringToAppend(), request.getSenderId(), request.getSignature());
+        // Create new Block
+        Block block = new Block(request.getStringToAppend(), request.getSenderId(), request.getSignature());
+        String blockSerialized = new Gson().toJson(block);
+
+        service.startConsensus(blockSerialized);
 
         // Use a separate thread to check for consensus completion
         new Thread(() -> {
