@@ -66,14 +66,14 @@ public class Authenticate {
         return Arrays.equals(receivedMacBytes, recomputedMacBytes);
     }
 
-    private static PrivateKey readPrivateKey(String privateKeyPath) throws Exception {
+    public static PrivateKey readPrivateKey(String privateKeyPath) throws Exception {
         byte[] privEncoded = Files.readAllBytes(Paths.get(privateKeyPath));
         PKCS8EncodedKeySpec privSpec = new PKCS8EncodedKeySpec(privEncoded);
         KeyFactory keyFacPriv = KeyFactory.getInstance("RSA");
         return keyFacPriv.generatePrivate(privSpec);
     }
 
-    private static PublicKey readPublicKey(String publicKeyPath) throws Exception {
+    public static PublicKey readPublicKey(String publicKeyPath) throws Exception {
         byte[] pubEncoded = Files.readAllBytes(Paths.get(publicKeyPath));
         X509EncodedKeySpec pubSpec = new X509EncodedKeySpec(pubEncoded);
         KeyFactory keyFacPub = KeyFactory.getInstance("RSA");

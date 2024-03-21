@@ -1,11 +1,9 @@
 package pt.ulisboa.tecnico.hdsledger.client;
 
+import pt.ulisboa.tecnico.hdsledger.client.services.ClientParser;
 import pt.ulisboa.tecnico.hdsledger.client.services.ClientService;
 import pt.ulisboa.tecnico.hdsledger.utilities.ProcessConfig;
 import pt.ulisboa.tecnico.hdsledger.utilities.ProcessConfigBuilder;
-
-import java.util.ArrayList;
-import java.util.Scanner;
 
 public class Client {
 
@@ -33,35 +31,7 @@ public class Client {
             System.out.println("Client with id " + id);
             System.out.println("Connected on " + clientConfig.getHostname() + ":" + clientConfig.getPort());
 
-            Scanner scanner = new Scanner(System.in);
-
-            while (true) {
-                System.out.print("Enter command (append <string> or exit): ");
-                String input = scanner.nextLine();
-
-                // Splitting the input to get the command and argument (if any)
-                String[] commandAndArgument = input.split(" ", 2);
-                String command = commandAndArgument[0].toLowerCase();
-
-                switch (command) {
-                    case "append":
-                        if (commandAndArgument.length == 2) {
-                            String appendString = commandAndArgument[1];
-                            ArrayList<String> response = clientService.requestAppend(appendString);
-                            System.out.println("String appended: " + String.join("", response));
-                        } else {
-                            System.out.println("Invalid append command. Usage: append <string>");
-                        }
-                        break;
-                    case "exit":
-                        System.out.println("Exiting the loop.");
-                        scanner.close();
-                        System.exit(0);
-                    default:
-                        System.out.println("Invalid command. Available commands: append, exit");
-                }
-            }
-
+            ClientParser.Parse(clientConfig.getId(), clientService);
         } catch (Exception e) {
             e.printStackTrace();
         }

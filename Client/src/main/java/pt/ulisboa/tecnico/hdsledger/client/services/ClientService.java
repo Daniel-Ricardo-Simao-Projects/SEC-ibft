@@ -4,6 +4,7 @@ import pt.ulisboa.tecnico.hdsledger.communication.*;
 import pt.ulisboa.tecnico.hdsledger.utilities.*;
 
 import java.io.IOException;
+import java.security.PublicKey;
 import java.text.MessageFormat;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
@@ -29,6 +30,18 @@ public class ClientService {
         this.config = clientConfig;
 
         this.link = new Link(clientConfig, clientConfig.getPort(), nodeConfigs, AppendResponse.class);
+    }
+
+    public boolean transfer(PublicKey source, PublicKey destination, int amount) {
+        // TODO: Implement transfer logic
+        System.out.println("Transfering amount: " + amount + "...");
+        return true;
+    }
+
+    public int checkBalance(PublicKey publicKey) {
+        // TODO: Implement balance logic
+        System.out.println("Checking balance...");
+        return 0;
     }
 
     public ArrayList<String> requestAppend(String stringToAppend) {
