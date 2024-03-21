@@ -7,12 +7,12 @@
 4. Para qualquer tipo de mensagens, quem envia tem que assinar o valor por cima e quem recebe tem que validar
 
 ## 1.2. Prepare Piggyback
-1. Quando um nó propaga uma mensagem de round change, a mensagem deve ser acompanhada por um quorum de prepares que justifiquem o valor (se mandar valor, se não mandar valor nao precisa de mandar quorum).
+~~1. Quando um nó propaga uma mensagem de round change, a mensagem deve ser acompanhada por um quorum de prepares que justifiquem o valor (se mandar valor, se não mandar valor nao precisa de mandar quorum).~~
 
 ## 1.3. Justificação de Round Changes
-1. Sendo o lider, antes de mandar um pre-prepare, tem que se ver o valor:
-    - O valor é o input inicial caso todas as mensagens de round change que recebeu não têm valor
-    - O valor é determinado de forma a que: o valor do highet prepared do quorum round changes = ao valor de um quorum de prepares
+~~1. Sendo o lider, antes de mandar um pre-prepare, tem que se ver o valor:~~
+    ~~- O valor é o input inicial caso todas as mensagens de round change que recebeu não têm valor~~
+    ~~- O valor é determinado de forma a que: o valor do highet prepared do quorum round changes = ao valor de um quorum de prepares~~
 2. A receber pre-prepare é preciso confirmar se é valido:
     - Se a ronda = 1
     - Justify PrePrepare
