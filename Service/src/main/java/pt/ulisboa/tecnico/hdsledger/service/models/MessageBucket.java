@@ -1,7 +1,9 @@
 package pt.ulisboa.tecnico.hdsledger.service.models;
 
+import java.text.MessageFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 import pt.ulisboa.tecnico.hdsledger.communication.CommitMessage;
@@ -77,7 +79,94 @@ public class MessageBucket {
         }).findFirst();
     }
 
-    // justifyPrePrepare
+    /* return true if round == 1
+    return true if it has a valid quorum of round changes with pr and pv == 0
+    return true if it has a valid quorum of prepares such that (pr, value) == highestPrepare(Quorum of RoundChange)
+    return false otherwise */
+    public boolean justifyPrePrepare(String nodeId, int instance, int round, String value) {
+
+        if (round == 1) {
+            /*LOGGER.log(Level.INFO,
+                    MessageFormat.format("{0} - Instance {1} - Round {2} - Round 1",
+                            nodeId, instance, round));*/
+
+            return true;
+        }
+
+        if (!hasValidRoundChangeQuorum(nodeId, instance, round)) {
+
+            /*LOGGER.log(Level.INFO,
+                    MessageFormat.format("{0} - Instance {1} - Round {2} - No valid round change quorum",
+                            nodeId, instance, round));*/
+
+            return false;
+        }
+
+        // Get RoundChange messages
+        Map<String, ConsensusMessage> roundChangeMessages = bucket.get(instance).get(round);
+
+        // If all the round change messages haven't a prepared round neither a prepared value return true
+        if (roundChangeMessages.values().stream().allMatch((message) -> {
+            RoundChangeMessage roundChangeMessage = message.deserializeRoundChangeMessage();
+            return roundChangeMessage.getPreparedRound() == -1 && roundChangeMessage.getPreparedValue().equals("");
+        })) {
+            /*LOGGER.log(Level.INFO,
+                    MessageFormat.format("{0} - Instance {1} - Round {2} - All round change messages haven't a prepared round neither a prepared value",
+                            nodeId, instance, round));*/
+
+            return true;
+        }
+
+        // Get the highest prepared round and value
+        Optional<Map<Integer, String>> highestPrepared = highestPrepared(nodeId, instance, round);
+
+        // If there is no highest prepared round and value return false
+        if (!highestPrepared.isPresent()) {
+            /*LOGGER.log(Level.INFO,
+                    MessageFormat.format("{0} - Instance {1} - Round {2} - No highest prepared round and value",
+                            nodeId, instance, round));*/
+
+            return false;
+        }
+
+        // Get the highest prepared round and value
+        Map<Integer, String> highestPreparedMap = highestPrepared.get();
+        int highestPreparedRound = highestPreparedMap.keySet().iterator().next();
+
+        if (!(highestPreparedMap.get(highestPreparedRound).equals(value))) {
+            /*LOGGER.log(Level.INFO,
+                    MessageFormat.format("{0} - Instance {1} - Round {2} - Highest prepared value {3} is different from value {4}",
+                            nodeId, instance, round, highestPreparedMap.get(highestPreparedRound), value));*/
+
+            return false;
+        }
+
+        // Iterate over round change messages, check if any of them has a valid quorum of prepares with pr and pv == highestPrepare(Quorum of RoundChange)
+        for (ConsensusMessage message : roundChangeMessages.values()) {
+            RoundChangeMessage roundChangeMessage = message.deserializeRoundChangeMessage();
+            List<ConsensusMessage> prepareMessages = roundChangeMessage.getPrepareMessages();
+
+            // Check if a valid quorum of prepares with pr == highestPreparedRound and pv == value
+            if (prepareMessages.stream().filter((prepareMessage) -> {
+                PrepareMessage prepare = prepareMessage.deserializePrepareMessage();
+
+                return prepareMessage.getRound() == highestPreparedRound && prepare.getValue().equals(value);
+            }).count() >= quorumSize) {
+
+                /*LOGGER.log(Level.INFO,
+                        MessageFormat.format("{0} - Instance {1} - Round {2} - Valid quorum of prepares with pr and pv == highestPrepare",
+                                nodeId, instance, round));*/
+
+                return true;
+            }
+        }
+
+        /*LOGGER.log(Level.INFO,
+                MessageFormat.format("{0} - Instance {1} - Round {2} - No valid quorum of prepares with pr and pv == highestPrepare",
+                        nodeId, instance, round));*/
+
+        return false;
+    }
 
     /*  return true if it has 2f+1 valid round change messages
     to be valid it should have valid signature <- TODO */

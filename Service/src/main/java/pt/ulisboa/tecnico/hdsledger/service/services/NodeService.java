@@ -176,7 +176,7 @@ public class NodeService implements UDPService {
 
             timerExpiredNewRound(localConsensusInstance);
 
-        }, 1, TimeUnit.MILLISECONDS);
+        }, getRoundTimer(), TimeUnit.MILLISECONDS);
     }
 
     /*
@@ -230,6 +230,17 @@ public class NodeService implements UDPService {
         } else {
             LOGGER.log(Level.INFO,
                 MessageFormat.format("{0} - Valid client signature for value {1}", config.getId(), value));
+        }
+
+        if (roundChangeMessages.justifyPrePrepare(config.getId(), consensusInstance, round, blockSerialized)) {
+            LOGGER.log(Level.INFO,
+                    MessageFormat.format("{0} - Received justified PRE-PREPARE message from leader {1} for Consensus Instance {2}, Round {3}",
+                            config.getId(), senderId, consensusInstance, round));
+        } else {
+            LOGGER.log(Level.WARNING,
+                    MessageFormat.format("{0} - Received unjustified PRE-PREPARE message from leader {1} for Consensus Instance {2}, Round {3}",
+                            config.getId(), senderId, consensusInstance, round));
+            return;
         }
 
         // Set instance value

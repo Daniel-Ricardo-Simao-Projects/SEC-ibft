@@ -13,12 +13,12 @@
 ~~1. Sendo o lider, antes de mandar um pre-prepare, tem que se ver o valor:~~
     ~~- O valor é o input inicial caso todas as mensagens de round change que recebeu não têm valor~~
     ~~- O valor é determinado de forma a que: o valor do highet prepared do quorum round changes = ao valor de um quorum de prepares~~
-2. A receber pre-prepare é preciso confirmar se é valido:
-    - Se a ronda = 1
-    - Justify PrePrepare
+~~2. A receber pre-prepare é preciso confirmar se é valido:~~
+    ~~- Se a ronda = 1~~
+    ~~- Justify PrePrepare~~
 
 ## 1.4. Execução "concorrente" de instâncias de consenso
-~~1. Mudar o while da linha 131 do NodeService para outro sitio do algoritmo. As instancias do algoritmo param sempre no uponCommit caso estejam no "futuro"~~
+1. Mudar o while da linha 131 do NodeService para outro sitio do algoritmo. As instancias do algoritmo param sempre no uponCommit caso estejam no "futuro"
 
 ## 1.5. Camadas de abstração nos servidores (Library - Consensus - Application)
 1. Mudar ledger de sítio (tirar de NodeService e pôr no SerenityLedgerService)
