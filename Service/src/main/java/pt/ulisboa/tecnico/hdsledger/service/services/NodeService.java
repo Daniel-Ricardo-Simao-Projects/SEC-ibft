@@ -26,7 +26,10 @@ public class NodeService implements UDPService {
 
     private final ScheduledExecutorService timerExecutor = Executors.newScheduledThreadPool(1);
 
-    private ScheduledFuture<?> timerFuture;
+    //private ScheduledFuture<?> timerFuture;
+
+    // Map to store the timer for each consensus instance
+    private final Map<Integer, ScheduledFuture<?>> timers = new ConcurrentHashMap<>();
 
     private boolean isRoundChanging = false;
 
@@ -137,18 +140,6 @@ public class NodeService implements UDPService {
             return;
         }
 
-        // Only finish a consensus instance if the last one was decided
-        // We need to be sure that the previous value has been decided
-        while (lastDecidedConsensusInstance.get() < this.consensusInstance.get() - 1) {
-            LOGGER.log(Level.INFO,
-                    MessageFormat.format("{0} - Waiting for last consensus instance to be decided", config.getId()));
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-
         // Leader broadcasts PRE-PREPARE message
         if (this.config.isLeader()) {
             
@@ -175,7 +166,7 @@ public class NodeService implements UDPService {
                 MessageFormat.format("{0} - Node timer started for instance {1} round {2}", config.getId(),
                         localConsensusInstance, this.instanceInfo.get(localConsensusInstance).getCurrentRound()));
 
-        timerFuture = timerExecutor.schedule(() -> {
+        ScheduledFuture<?> timerFuture = timerExecutor.schedule(() -> {
 
             LOGGER.log(Level.INFO,
                     MessageFormat.format("{0} - Node timer expired for instance {1} round {2}", config.getId(),
@@ -184,6 +175,8 @@ public class NodeService implements UDPService {
             timerExpiredNewRound(localConsensusInstance);
 
         }, getRoundTimer(), TimeUnit.MILLISECONDS);
+
+        timers.put(localConsensusInstance, timerFuture);
     }
 
     /*
@@ -442,13 +435,24 @@ public class NodeService implements UDPService {
 
         if (commitValue.isPresent() && instance.getCommittedRound() < round) {
 
-            cancelTimer();
+            cancelTimer(consensusInstance);
 
             instance = this.instanceInfo.get(consensusInstance);
             instance.setCommittedRound(round);
 
             String value = commitValue.get();
 
+            // Only finish a consensus instance if the last one was decided
+            // We need to be sure that the previous value has been decided
+            while (lastDecidedConsensusInstance.get() < consensusInstance - 1) {
+                LOGGER.log(Level.INFO,
+                        MessageFormat.format("{0} - Waiting for last consensus instance to be decided", config.getId()));
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
 
 
             // Append value to the ledger (must be synchronized to be thread-safe)
@@ -596,9 +600,10 @@ public class NodeService implements UDPService {
 
     // Method to reset the timer
     private void resetTimer(int consensusInstance) {
+
         // Cancel the existing timer if it's still running
-        if (timerFuture != null && !timerFuture.isDone()) {
-            timerFuture.cancel(true);
+        if (timers.get(consensusInstance) != null && !timers.get(consensusInstance).isDone()) {
+            timers.get(consensusInstance).cancel(true);
         }
 
         LOGGER.log(Level.INFO,
@@ -606,7 +611,7 @@ public class NodeService implements UDPService {
                         consensusInstance, this.instanceInfo.get(consensusInstance).getCurrentRound()));
 
         // Schedule a new task with the desired delay
-        timerFuture = timerExecutor.schedule(() -> {
+        ScheduledFuture<?> timerFuture = timerExecutor.schedule(() -> {
 
             LOGGER.log(Level.INFO,
                     MessageFormat.format("{0} - Node timer expired for instance {1} round {2}", config.getId(),
@@ -615,6 +620,9 @@ public class NodeService implements UDPService {
             timerExpiredNewRound(consensusInstance);
 
         }, getRoundTimer(), TimeUnit.MILLISECONDS);
+
+        // Replace the old timer with the new one
+        timers.put(consensusInstance, timerFuture);
     }
 
     private int getRoundTimer() {
@@ -624,9 +632,9 @@ public class NodeService implements UDPService {
         return (int) Math.pow(2, round) * 1000 + 2000;
     }
 
-    private void cancelTimer() {
-        if (timerFuture != null && !timerFuture.isDone()) {
-            timerFuture.cancel(true);
+    private void cancelTimer(int consensusInstance) {
+        if (timers.get(consensusInstance) != null && !timers.get(consensusInstance).isDone()) {
+            timers.get(consensusInstance).cancel(true);
         }
 
         LOGGER.log(Level.INFO,
