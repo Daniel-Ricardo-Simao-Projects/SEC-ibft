@@ -99,8 +99,6 @@ public class Link {
 
                 data.setMessageId(messageCounter.getAndIncrement());
 
-                System.out.println(data.toString());
-
                 // Set MAC for message
                 byte[] buf = new Gson().toJson(data).getBytes();
                 byte[] mac = null;

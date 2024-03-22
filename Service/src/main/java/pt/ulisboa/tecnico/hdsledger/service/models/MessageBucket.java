@@ -168,6 +168,39 @@ public class MessageBucket {
         return false;
     }
 
+    /* return true if it has a valid set (f+1) of round change messages such that all round change messages have round > currentRound
+     */
+    public boolean hasValidRoundChangeSet(String nodeId, int instance, int round, int myCurrentRound) {
+
+        Map<Integer, Map<String, ConsensusMessage>> roundMap = bucket.get(instance);
+        if (roundMap == null) {
+            return false; // or handle the case where roundMap is null
+        }
+
+        Map<String, ConsensusMessage> senderMap = roundMap.get(round);
+        if (senderMap == null) {
+            return false; // or handle the case where senderMap is null
+        }
+
+        // Check if all round change messages have round > currentRound
+        return senderMap.values().stream().allMatch((message) -> message.getRound() > myCurrentRound);
+    }
+
+    public int getMinimumRoundChangeRound(String nodeId, int instance, int round) {
+        Map<Integer, Map<String, ConsensusMessage>> roundMap = bucket.get(instance);
+        if (roundMap == null) {
+            return -1; // or handle the case where roundMap is null
+        }
+
+        Map<String, ConsensusMessage> senderMap = roundMap.get(round);
+        if (senderMap == null) {
+            return -1; // or handle the case where senderMap is null
+        }
+
+        // Get the minimum round of the round change messages
+        return senderMap.values().stream().mapToInt(ConsensusMessage::getRound).min().orElse(-1);
+    }
+
     /*  return true if it has 2f+1 valid round change messages
     to be valid it should have valid signature <- TODO */
     public boolean hasValidRoundChangeQuorum(String nodeId, int instance, int round) {
@@ -272,51 +305,6 @@ public class MessageBucket {
 
 
         return Optional.empty();
-    }
-
-    /*public Optional<String> hasValidRoundChangeQuorum(String nodeId, int instance, int round) {
-        Map<Integer, Map<String, ConsensusMessage>> roundMap = bucket.get(instance);
-        if (roundMap == null) {
-            return Optional.empty(); // or handle the case where roundMap is null
-        }
-
-        Map<String, ConsensusMessage> senderMap = roundMap.get(round);
-        if (senderMap == null) {
-            return Optional.empty(); // or handle the case where senderMap is null
-        }
-
-        // Check for the highest round change message and return the value, using a normal for loop (without lambdas)
-        int roundBegin = -1;
-        String valueToReturn = "";
-
-        for (Map.Entry<String, ConsensusMessage> entry : senderMap.entrySet()) {
-            RoundChangeMessage roundChangeMessage = entry.getValue().deserializeRoundChangeMessage();
-            if (roundChangeMessage.getPreparedRound() > roundBegin) {
-                roundBegin = roundChangeMessage.getPreparedRound();
-                valueToReturn = roundChangeMessage.getPreparedValue();
-            }
-        }
-
-        return Optional.of(valueToReturn);
-    }*/
-
-
-    public Optional<Integer> findSmallestValidRoundChange(String nodeId, int instance, int currentRound) {
-        // Create mapping of round to frequency
-        HashMap<Integer, Integer> frequency = new HashMap<>();
-
-        bucket.get(instance).forEach((round, roundMessages) -> {
-            if (round > currentRound) {
-                roundMessages.values().forEach((message) -> {
-                    RoundChangeMessage roundChangeMessage = message.deserializeRoundChangeMessage();
-                    int receivedRound = roundChangeMessage.getPreparedRound();
-                    frequency.put(receivedRound, frequency.getOrDefault(receivedRound, 0) + 1);
-                });
-            }
-        });
-
-        // Find the smallest round
-        return frequency.keySet().stream().min(Integer::compareTo);
     }
 
     // Given an instance and a round, returns list of messages

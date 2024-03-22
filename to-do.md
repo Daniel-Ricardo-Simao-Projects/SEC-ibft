@@ -26,7 +26,7 @@
 ## 1.6. Melhor validação de respostas do lado do cliente
 1. O cliente tem que esperar por f+1 respostas.
     - f+1 respostas? e assim temos que saber distinguir qual está bem e qual está mal
-    - f+1 respotas iguais? e assim é só esperar por f+1 respostas iguais sem necessidade de confirmar
+    - f+1 respostas iguais? e assim é só esperar por f+1 respostas iguais sem necessidade de confirmar
 
 ## 1.7. Mais testes de comportamento bizantino
 
