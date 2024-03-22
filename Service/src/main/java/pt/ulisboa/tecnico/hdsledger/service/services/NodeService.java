@@ -123,7 +123,7 @@ public class NodeService implements UDPService {
 
         // Set initial consensus values
         int localConsensusInstance = this.consensusInstance.incrementAndGet();
-        InstanceInfo existingConsensus = this.instanceInfo.put(localConsensusInstance, new InstanceInfo(value));
+        InstanceInfo existingConsensus = this.instanceInfo.put(localConsensusInstance, new InstanceInfo(blockSerialized));
 
         this.leaderConfig = nodesConfig[0];
 
@@ -132,6 +132,16 @@ public class NodeService implements UDPService {
             LOGGER.log(Level.INFO, MessageFormat.format("{0} - Node already started consensus for instance {1}",
                     config.getId(), localConsensusInstance));
             return;
+        }
+
+        // Only finish a consensus instance if the last one was decided
+        // We need to be sure that the previous value has been decided
+        while (lastDecidedConsensusInstance.get() < this.consensusInstance.get() - 1) {
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
 
         // Leader broadcasts PRE-PREPARE message
@@ -166,7 +176,7 @@ public class NodeService implements UDPService {
 
             timerExpiredNewRound(localConsensusInstance);
 
-        }, getRoundTimer(), TimeUnit.MILLISECONDS);
+        }, 1, TimeUnit.MILLISECONDS);
     }
 
     /*
@@ -421,15 +431,7 @@ public class NodeService implements UDPService {
 
             String value = commitValue.get();
 
-            // Only finish a consensus instance if the last one was decided
-            // We need to be sure that the previous value has been decided
-            while (lastDecidedConsensusInstance.get() < this.consensusInstance.get() - 1) {
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
+
 
             // Append value to the ledger (must be synchronized to be thread-safe)
             synchronized(ledger) {
@@ -509,6 +511,7 @@ public class NodeService implements UDPService {
         if(config.getId() == leaderConfig.getId() &&
                 roundChangeMessages.hasValidRoundChangeQuorum(config.getId(), consensusInstance, round) &&
                 roundChangeMessages.justifyRoundChange(config.getId(), consensusInstance, round)) {
+
             LOGGER.log(Level.INFO,
                     MessageFormat.format("{0} - Received valid  and justified ROUND CHANGE quorum for Consensus Instance {1}, Round {2}",
                             config.getId(), consensusInstance, round));
