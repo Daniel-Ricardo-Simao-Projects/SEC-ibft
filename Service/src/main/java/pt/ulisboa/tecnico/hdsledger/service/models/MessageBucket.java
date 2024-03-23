@@ -1,13 +1,16 @@
 package pt.ulisboa.tecnico.hdsledger.service.models;
 
+import java.text.MessageFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 import pt.ulisboa.tecnico.hdsledger.communication.CommitMessage;
 import pt.ulisboa.tecnico.hdsledger.communication.ConsensusMessage;
 import pt.ulisboa.tecnico.hdsledger.communication.PrepareMessage;
 import pt.ulisboa.tecnico.hdsledger.communication.RoundChangeMessage;
+import pt.ulisboa.tecnico.hdsledger.utilities.Authenticate;
 import pt.ulisboa.tecnico.hdsledger.utilities.CustomLogger;
 
 public class MessageBucket {
@@ -45,9 +48,14 @@ public class MessageBucket {
         // Create mapping of value to frequency
         HashMap<String, Integer> frequency = new HashMap<>();
         bucket.get(instance).get(round).values().forEach((message) -> {
-            PrepareMessage prepareMessage = message.deserializePrepareMessage();
-            String value = prepareMessage.getValue();
-            frequency.put(value, frequency.getOrDefault(value, 0) + 1);
+            byte[] digitalSignature = message.getDigitalSignature();
+            if (Authenticate.verifySignature(message.toString(), digitalSignature, "../Utilities/keys/" + message.getSenderId() + "Pub.key")) {
+                PrepareMessage prepareMessage = message.deserializePrepareMessage();
+                String value = prepareMessage.getValue();
+                frequency.put(value, frequency.getOrDefault(value, 0) + 1);
+            } else {
+                LOGGER.log(Level.WARNING, MessageFormat.format("{0} - Invalid node signature from sender {1} for PREPARE message", message.getSenderId()));
+            }
         });
 
         // Only one value (if any, thus the optional) will have a frequency
@@ -63,9 +71,14 @@ public class MessageBucket {
         // Create mapping of value to frequency
         HashMap<String, Integer> frequency = new HashMap<>();
         bucket.get(instance).get(round).values().forEach((message) -> {
-            CommitMessage commitMessage = message.deserializeCommitMessage();
-            String value = commitMessage.getValue();
-            frequency.put(value, frequency.getOrDefault(value, 0) + 1);
+            byte[] digitalSignature = message.getDigitalSignature();
+            if (Authenticate.verifySignature(message.toString(), digitalSignature, "../Utilities/keys/" + message.getSenderId() + "Pub.key")) {
+                CommitMessage commitMessage = message.deserializeCommitMessage();
+                String value = commitMessage.getValue();
+                frequency.put(value, frequency.getOrDefault(value, 0) + 1);
+            } else {
+                LOGGER.log(Level.WARNING, MessageFormat.format("{0} - Invalid node signature from sender {1} for COMMIT message", message.getSenderId()));
+            }
         });
 
         // Only one value (if any, thus the optional) will have a frequency
@@ -203,7 +216,7 @@ public class MessageBucket {
     }
 
     /*  return true if it has 2f+1 valid round change messages
-    to be valid it should have valid signature <- TODO */
+    to be valid it should have valid signature */
     public boolean hasValidRoundChangeQuorum(String nodeId, int instance, int round) {
 
         Map<Integer, Map<String, ConsensusMessage>> roundMap = bucket.get(instance);
@@ -220,9 +233,13 @@ public class MessageBucket {
         int roundChangeCount = 0;
 
         for (Map.Entry<String, ConsensusMessage> entry : senderMap.entrySet()) {
-            RoundChangeMessage roundChangeMessage = entry.getValue().deserializeRoundChangeMessage();
-            if (roundChangeMessage.getPreparedRound() >= -1) {
+            ConsensusMessage message = entry.getValue();
+            byte[] digitalSignature = message.getDigitalSignature();
+            RoundChangeMessage roundChangeMessage = message.deserializeRoundChangeMessage();
+            if (roundChangeMessage.getPreparedRound() >= -1 && Authenticate.verifySignature(message.toString(), digitalSignature, "../Utilities/keys/" + message.getSenderId() + "Pub.key")) {
                 roundChangeCount++;
+            } else if (roundChangeMessage.getPreparedRound() >= -1) {
+                LOGGER.log(Level.WARNING, MessageFormat.format("{0} - Invalid node signature from sender {1} for ROUND CHANGE message", message.getSenderId()));
             }
         }
 

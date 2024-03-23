@@ -156,7 +156,12 @@ public class NodeService implements UDPService {
             InstanceInfo instance = this.instanceInfo.get(localConsensusInstance);
             LOGGER.log(Level.INFO,
                     MessageFormat.format("{0} - Node is leader, sending PRE-PREPARE message", config.getId()));
-            this.link.broadcast(this.createConsensusMessage(blockSerialized, localConsensusInstance, instance.getCurrentRound()));
+
+            ConsensusMessage consensusMessage = this.createConsensusMessage(blockSerialized, localConsensusInstance, instance.getCurrentRound());
+            // Sign message
+            byte[] signature = Authenticate.signData(consensusMessage.toString(), "../Utilities/keys/" + config.getId() + "Priv.key");
+            consensusMessage.setDigitalSignature(signature);
+            this.link.broadcast(consensusMessage);
         } else {
             LOGGER.log(Level.INFO,
                     MessageFormat.format("{0} - Node is not leader, waiting for PRE-PREPARE message", config.getId()));
@@ -174,7 +179,7 @@ public class NodeService implements UDPService {
 
             timerExpiredNewRound(localConsensusInstance);
 
-        }, 1, TimeUnit.MILLISECONDS);
+        }, getRoundTimer(localConsensusInstance), TimeUnit.MILLISECONDS);
 
         timers.put(localConsensusInstance, timerFuture);
     }
@@ -264,7 +269,10 @@ public class NodeService implements UDPService {
                     .setReplyTo(senderId)
                     .setReplyToMessageId(senderMessageId)
                     .build();
-
+            
+            // Sign message
+            byte[] signature = Authenticate.signData(consensusMessage.toString(), "../Utilities/keys/" + config.getId() + "Priv.key");
+            consensusMessage.setDigitalSignature(signature);
             this.link.broadcast(consensusMessage);
 
             return;
@@ -282,6 +290,9 @@ public class NodeService implements UDPService {
                 .setReplyToMessageId(senderMessageId)
                 .build();
 
+        // Sign message
+        byte[] signature = Authenticate.signData(consensusMessage.toString(), "../Utilities/keys/" + config.getId() + "Priv.key");
+        consensusMessage.setDigitalSignature(signature);
         this.link.broadcast(consensusMessage);
     }
 
@@ -347,6 +358,9 @@ public class NodeService implements UDPService {
                     .setMessage(instance.getCommitMessage().toJson())
                     .build();
 
+            // Sign message
+            byte[] signature = Authenticate.signData(m.toString(), "../Utilities/keys/" + config.getId() + "Priv.key");
+            m.setDigitalSignature(signature);
             link.send(senderId, m);
             return;
         }
@@ -382,6 +396,9 @@ public class NodeService implements UDPService {
                         .setMessage(c.toJson())
                         .build();
 
+                // Sign message
+                byte[] signature = Authenticate.signData(m.toString(), "../Utilities/keys/" + config.getId() + "Priv.key");
+                m.setDigitalSignature(signature);
                 link.send(senderMessage.getSenderId(), m);
             });
         }
@@ -524,7 +541,11 @@ public class NodeService implements UDPService {
                     MessageFormat.format("{0} - Broadcasting PRE-PREPARE message with valid prepared value: {1} for Consensus Instance {2}, Round {3}",
                             config.getId(), value, consensusInstance, newRound));
 
-            this.link.broadcast(this.createConsensusMessage(value, consensusInstance, newRound));
+            ConsensusMessage consensusMessage = this.createConsensusMessage(value, consensusInstance, newRound);
+            // Sign message
+            byte[] signature = Authenticate.signData(consensusMessage.toString(), "../Utilities/keys/" + config.getId() + "Priv.key");
+            consensusMessage.setDigitalSignature(signature);
+            this.link.broadcast(consensusMessage);
             isRoundChanging = false;
         } else if (roundChangeMessages.hasValidRoundChangeQuorum(config.getId(), consensusInstance, round)) {
             LOGGER.log(Level.INFO,
@@ -584,6 +605,9 @@ public class NodeService implements UDPService {
                     .setMessage(roundChangeMessage.toJson())
                     .build();
 
+            // Sign message
+            byte[] signature = Authenticate.signData(consensusMessage.toString(), "../Utilities/keys/" + config.getId() + "Priv.key");
+            consensusMessage.setDigitalSignature(signature);
             this.link.broadcast(consensusMessage);
 
             sentRoundChange.putIfAbsent(localConsensusInstance, new ConcurrentHashMap<>());
@@ -686,6 +710,9 @@ public class NodeService implements UDPService {
                 .setMessage(roundChangeMessage.toJson())
                 .build();
 
+        // Sign message
+        byte[] signature = Authenticate.signData(consensusMessage.toString(), "../Utilities/keys/" + config.getId() + "Priv.key");
+        consensusMessage.setDigitalSignature(signature);
         this.link.broadcast(consensusMessage);
 
         sentRoundChange.putIfAbsent(localConsensusInstance, new ConcurrentHashMap<>());

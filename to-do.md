@@ -3,8 +3,8 @@
 ## 1.1. Condição de Validity no IBFT
 ~~1. Mudar link de Digital Signature para MAC~~
 ~~2. Quando o cliente manda pedido tem que fazer DS do valor~~ + nonce!
-3. Os nós quando recebem verificam se o valor é válido
-4. Para qualquer tipo de mensagens, quem envia tem que assinar o valor por cima e quem recebe tem que validar
+~~3. Os nós quando recebem verificam se o valor é válido~~
+~~4. Para qualquer tipo de mensagens, quem envia tem que assinar o valor por cima e quem recebe tem que validar~~
 
 ~~## 1.2. Prepare Piggyback~~
 ~~1. Quando um nó propaga uma mensagem de round change, a mensagem deve ser acompanhada por um quorum de prepares que justifiquem o valor (se mandar valor, se não mandar valor nao precisa de mandar quorum).~~

@@ -14,6 +14,8 @@ public class ConsensusMessage extends Message {
     private int replyToMessageId;
     // Message (PREPREPARE, PREPARE, COMMIT, ROUNDCHANGE)
     private String message;
+    // Digital signature
+    private byte[] digitalSignature;
 
     public ConsensusMessage(String senderId, Type type) {
         super(senderId, type);
@@ -75,7 +77,24 @@ public class ConsensusMessage extends Message {
         this.replyToMessageId = replyToMessageId;
     }
 
+    public byte[] getDigitalSignature() {
+        return digitalSignature;
+    }
+
     public void setDigitalSignature(byte[] digitalSignature) {
-        // TODO: Implement this
+        this.digitalSignature = digitalSignature;
+    }
+    
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(consensusInstance).append("|");
+        sb.append(round).append("|");
+        sb.append(replyTo).append("|");
+        sb.append(replyToMessageId).append("|");
+        sb.append(message).append("|");
+        sb.append(super.getSenderId()).append("|");
+        sb.append(super.getType()).append("|");
+        return sb.toString();
     }
 }
