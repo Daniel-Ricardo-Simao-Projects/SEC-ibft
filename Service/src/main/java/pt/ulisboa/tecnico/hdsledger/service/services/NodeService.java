@@ -174,7 +174,7 @@ public class NodeService implements UDPService {
 
             timerExpiredNewRound(localConsensusInstance);
 
-        }, getRoundTimer(), TimeUnit.MILLISECONDS);
+        }, 1, TimeUnit.MILLISECONDS);
 
         timers.put(localConsensusInstance, timerFuture);
     }
@@ -485,8 +485,6 @@ public class NodeService implements UDPService {
 
         int consensusInstance = message.getConsensusInstance();
         int round = message.getRound();
-        String senderId = message.getSenderId();
-        int senderMessageId = message.getMessageId();
 
         LOGGER.log(Level.INFO,
                 MessageFormat.format("{0} - Received ROUND CHANGE message from {1}: Consensus Instance {2}, Round {3}",
@@ -535,11 +533,10 @@ public class NodeService implements UDPService {
             isRoundChanging = false;
         }
 
-        /*
         if(roundChangeMessages.hasValidRoundChangeSet(config.getId(), consensusInstance, round, instance.getCurrentRound()) &&
                 !alreadySentRoundChangeMessage(consensusInstance, round)) {
 
-            int minimumRound = roundChangeMessages.getMinimumRoundChangeRound(config.getId(), consensusInstance, round);
+            int minimumRound = roundChangeMessages.getMinimumRoundChangeRound(config.getId(), consensusInstance, round, instance.getCurrentRound());
 
             if (minimumRound < instance.getCurrentRound()) {
                 LOGGER.log(Level.INFO,
@@ -591,7 +588,7 @@ public class NodeService implements UDPService {
 
             sentRoundChange.putIfAbsent(localConsensusInstance, new ConcurrentHashMap<>());
             sentRoundChange.get(localConsensusInstance).put(instance.getCurrentRound(), true);
-        } */
+        }
     }
 
     private boolean alreadySentRoundChangeMessage(int consensusInstance, int round) {
@@ -619,16 +616,17 @@ public class NodeService implements UDPService {
 
             timerExpiredNewRound(consensusInstance);
 
-        }, getRoundTimer(), TimeUnit.MILLISECONDS);
+        }, getRoundTimer(consensusInstance), TimeUnit.MILLISECONDS);
 
         // Replace the old timer with the new one
         timers.put(consensusInstance, timerFuture);
     }
 
-    private int getRoundTimer() {
-        int round = this.instanceInfo.get(this.consensusInstance.get()).getCurrentRound();
+    private int getRoundTimer(int consensusInstance) {
+        int round = this.instanceInfo.get(consensusInstance).getCurrentRound();
         LOGGER.log(Level.SEVERE,
-                MessageFormat.format("{0} - Timer for round {1} is {2}ms", config.getId(), round, Math.pow(2, round) * 1000 + 2000));
+                MessageFormat.format("{0} - Timer for instance {1} round {2} is {3}ms", config.getId(),
+                        consensusInstance, round, Math.pow(2, round) * 1000 + 2000));
         return (int) Math.pow(2, round) * 1000 + 2000;
     }
 
@@ -638,10 +636,7 @@ public class NodeService implements UDPService {
         }
 
         LOGGER.log(Level.INFO,
-                MessageFormat.format("{0} - Node timer stopped", config.getId()));
-
-        // You may want to recreate the executor if you intend to use it again
-        // timerExecutor = Executors.newScheduledThreadPool(1);
+                MessageFormat.format("{0} - Node timer stopped for instance {1}", config.getId(), consensusInstance));
     }
 
     private void timerExpiredNewRound(int localConsensusInstance) {
@@ -658,8 +653,8 @@ public class NodeService implements UDPService {
         // Set new leader for new round
         this.leaderConfig = nodesConfig[(instance.getCurrentRound() % nodesConfig.length) - 1];
         LOGGER.log(Level.SEVERE,
-                MessageFormat.format("{0} - New leader for round {1} is {2}", config.getId(),
-                        instance.getCurrentRound(), leaderConfig.getId()));
+                MessageFormat.format("{0} - New leader for instance {1} round {2} is {3}", config.getId(),
+                        localConsensusInstance, instance.getCurrentRound(), leaderConfig.getId()));
 
         // Set timer to running
         resetTimer(localConsensusInstance);

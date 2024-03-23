@@ -1,9 +1,7 @@
 package pt.ulisboa.tecnico.hdsledger.service.models;
 
-import java.text.MessageFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 import pt.ulisboa.tecnico.hdsledger.communication.CommitMessage;
@@ -182,11 +180,12 @@ public class MessageBucket {
             return false; // or handle the case where senderMap is null
         }
 
-        // Check if all round change messages have round > currentRound
-        return senderMap.values().stream().allMatch((message) -> message.getRound() > myCurrentRound);
+        // Check if f + 1 round change messages have round > currentRound
+        return senderMap.values().stream().filter((message) -> message.getRound() > myCurrentRound).count() >= f + 1;
+        // return senderMap.values().stream().allMatch((message) -> message.getRound() > myCurrentRound);
     }
 
-    public int getMinimumRoundChangeRound(String nodeId, int instance, int round) {
+    public int getMinimumRoundChangeRound(String nodeId, int instance, int round, int myCurrentRound) {
         Map<Integer, Map<String, ConsensusMessage>> roundMap = bucket.get(instance);
         if (roundMap == null) {
             return -1; // or handle the case where roundMap is null
@@ -197,8 +196,10 @@ public class MessageBucket {
             return -1; // or handle the case where senderMap is null
         }
 
-        // Get the minimum round of the round change messages
-        return senderMap.values().stream().mapToInt(ConsensusMessage::getRound).min().orElse(-1);
+        // Get the minimum round of the round change messages bigger than my round
+        return senderMap.values().stream().filter((message) -> message.getRound() > myCurrentRound).mapToInt(ConsensusMessage::getRound).min().orElse(-1);
+
+        //return senderMap.values().stream().mapToInt(ConsensusMessage::getRound).min().orElse(-1);
     }
 
     /*  return true if it has 2f+1 valid round change messages
@@ -236,14 +237,22 @@ public class MessageBucket {
         // Get RoundChange messages
         Map<String, ConsensusMessage> roundChangeMessages = bucket.get(instance).get(round);
 
-        // If all the round change messages haven't a prepared round neither a prepared value return true
-        if (roundChangeMessages.values().stream().allMatch((message) -> {
+        // If a quorum of round change messages haven't a prepared round neither a prepared value return true
+        if (roundChangeMessages.values().stream().filter((message) -> {
+            RoundChangeMessage roundChangeMessage = message.deserializeRoundChangeMessage();
+            return roundChangeMessage.getPreparedRound() == -1 && roundChangeMessage.getPreparedValue().equals("");
+        }).count() >= quorumSize) {
+
+            return true;
+        }
+
+        /*if (roundChangeMessages.values().stream().allMatch((message) -> {
             RoundChangeMessage roundChangeMessage = message.deserializeRoundChangeMessage();
             return roundChangeMessage.getPreparedRound() == -1 && roundChangeMessage.getPreparedValue().equals("");
         })) {
 
             return true;
-        }
+        }*/
 
         // Get the highest prepared round and value
         Optional<Map<Integer, String>> highestPrepared = highestPrepared(nodeId, instance, round);
