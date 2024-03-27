@@ -56,7 +56,7 @@ public class SerenityLedgerService implements UDPService {
                 }
 
                 AppendResponse response = new AppendResponse(Message.Type.APPEND_RESPONSE, nodeId,
-                        request.getRequestId(), service.getLedger());
+                        request.getRequestId(), service.getLedger().toString());
 
                 future.complete(response);
             } catch (InterruptedException e) {
@@ -79,7 +79,7 @@ public class SerenityLedgerService implements UDPService {
                         // Separate thread to handle each message
                         new Thread(() -> {
                             switch (message.getType()) {
-                                case APPEND -> {
+                                case APPEND, TRANSFER -> {
                                     AppendRequest request = (AppendRequest) message;
 
                                     LOGGER.log(Level.INFO,
@@ -95,6 +95,9 @@ public class SerenityLedgerService implements UDPService {
                                     } catch (InterruptedException | ExecutionException e) {
                                         throw new RuntimeException(e);
                                     }
+                                }
+                                case BALANCE -> {
+                                    // TODO: Implement
                                 }
                                 default -> {
                                     LOGGER.log(Level.INFO,

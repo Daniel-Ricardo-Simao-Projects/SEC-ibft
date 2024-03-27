@@ -1,5 +1,7 @@
 package pt.ulisboa.tecnico.hdsledger.communication;
 
+import com.google.gson.Gson;
+
 public class AppendRequest extends Message {
 
     private int requestId;
@@ -12,6 +14,14 @@ public class AppendRequest extends Message {
         super(senderId, type);
         this.stringToAppend = stringToAppend;
         this.requestId = requestId;
+    }
+
+    public TransferRequest deserializeTransferMessage() {
+        return new Gson().fromJson(this.stringToAppend, TransferRequest.class);
+    }
+
+    public BalanceRequest deserializeBalanceMessage() {
+        return new Gson().fromJson(this.stringToAppend, BalanceRequest.class);
     }
 
     public String getStringToAppend() {

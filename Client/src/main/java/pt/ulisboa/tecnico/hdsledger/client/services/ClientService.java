@@ -1,6 +1,7 @@
 package pt.ulisboa.tecnico.hdsledger.client.services;
 
 import pt.ulisboa.tecnico.hdsledger.communication.*;
+import pt.ulisboa.tecnico.hdsledger.communication.Message.Type;
 import pt.ulisboa.tecnico.hdsledger.utilities.*;
 
 import java.io.IOException;
@@ -10,6 +11,9 @@ import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
+
+import com.google.gson.Gson;
+
 import java.util.concurrent.atomic.AtomicInteger;
 public class ClientService {
 
@@ -33,21 +37,33 @@ public class ClientService {
     }
 
     public boolean transfer(PublicKey source, PublicKey destination, int amount) {
-        // TODO: Implement transfer logic
         System.out.println("Transfering amount: " + amount + "...");
+
+        TransferRequest transferRequest = new TransferRequest(source, destination, amount);
+        
+        String requestTransferSerialized = new Gson().toJson(transferRequest);
+        
+        requestAppend(requestTransferSerialized, Type.TRANSFER);
+
         return true;
     }
 
     public int checkBalance(PublicKey publicKey) {
-        // TODO: Implement balance logic
         System.out.println("Checking balance...");
+        
+        BalanceRequest balanceRequest = new BalanceRequest(publicKey);
+
+        String requestBalanceSerialized = new Gson().toJson(balanceRequest);
+
+        requestAppend(requestBalanceSerialized, Type.BALANCE);
+
         return 0;
     }
 
-    public ArrayList<String> requestAppend(String stringToAppend) {
+    public String requestAppend(String stringToAppend, Type type) {
         int requestId = this.requestIdCounter.getAndIncrement();
 
-        AppendRequest request = new AppendRequest(AppendRequest.Type.APPEND, this.config.getId(), requestId, stringToAppend);
+        AppendRequest request = new AppendRequest(type, this.config.getId(), requestId, stringToAppend);
 
         // Sign data
         byte[] signature = Authenticate.signData(stringToAppend, "../Utilities/keys/" + this.config.getId() + "Priv.key");
@@ -83,10 +99,10 @@ public class ClientService {
 
         AppendResponse appendResponse = responses.get(requestId);
         if (appendResponse != null) {
-            return appendResponse.getCurrentBlockchain();
+            return appendResponse.getResponse();
         } else {
             // Handle timeout or other scenarios
-            return new ArrayList<>();
+            return new String();
         }
     }
 

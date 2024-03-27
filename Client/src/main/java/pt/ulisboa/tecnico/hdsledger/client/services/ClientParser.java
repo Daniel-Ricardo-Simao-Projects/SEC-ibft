@@ -4,6 +4,7 @@ import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.Scanner;
 
+import pt.ulisboa.tecnico.hdsledger.communication.Message.Type;
 import pt.ulisboa.tecnico.hdsledger.utilities.Authenticate;
 
 public class ClientParser {
@@ -27,7 +28,7 @@ public class ClientParser {
                 case "append":
                     if (commandAndArgument.length == 2) {
                         String appendString = commandAndArgument[1];
-                        ArrayList<String> response = clientService.requestAppend(appendString);
+                        String response = clientService.requestAppend(appendString, Type.APPEND);
                         System.out.println("String appended: " + String.join("", response));
                     } else {
                         System.out.println("Invalid append command. Usage: append <string>");
@@ -49,7 +50,7 @@ public class ClientParser {
                                 System.out.println("Transfer failed");
                             }
                         } catch (Exception e) {
-                            System.out.println("Error reading keys");
+                            System.out.println("Error reading keys: " + e);
                         }
                     } else {
                         System.out.println("Invalid tranfer command. Usage: transfer <dest> <amount>");
