@@ -159,7 +159,7 @@ public class SerenityLedgerService implements UDPService {
                                                     nodeId, request.getStringToAppend(),
                                                     message.getSenderId()));
 
-                                    //getAccountBalance(request);
+                                    // verify balance request
                                 }
                                 default -> {
                                     LOGGER.log(Level.INFO,

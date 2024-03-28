@@ -488,6 +488,16 @@ public class NodeService implements UDPService {
 
                 ledgerList.add(consensusInstance - 1, value);
 
+                // assuming all transactions are transfers, change account balances
+                Map<String, Account> accounts = ledger.getAccounts();
+
+                Block block = new Gson().fromJson(value, Block.class);
+
+                TransferRequest transfer = new Gson().fromJson(block.getValue(), TransferRequest.class);
+
+                accounts.get(block.getClientID()).subtractBalance(transfer.getAmount());
+                accounts.get(transfer.getDestClientId()).addBalance(transfer.getAmount());
+
                 LOGGER.log(Level.INFO,
                         MessageFormat.format(
                                 "{0} - Current Ledger: {1}",
