@@ -57,9 +57,14 @@ public class ClientService {
 
         String requestBalanceSerialized = new Gson().toJson(balanceRequest);
 
-        requestAppend(requestBalanceSerialized, Type.BALANCE);
+        String balance = requestAppend(requestBalanceSerialized, Type.BALANCE);
 
-        return 0;
+        try {
+            return Integer.parseInt(balance);
+        } catch (Exception e) {
+            System.out.println("Error: " + e);
+            return 0;
+        }
     }
 
     public String requestAppend(String stringToAppend, Type type) {

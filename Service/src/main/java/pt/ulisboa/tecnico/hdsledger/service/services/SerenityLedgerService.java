@@ -159,6 +159,12 @@ public class SerenityLedgerService implements UDPService {
                                                     nodeId, request.getStringToAppend(),
                                                     message.getSenderId()));
 
+                                    var balance = service.getLedger().getAccounts().get(request.getSenderId()).getBalance();
+                                    try {
+                                        link.send(message.getSenderId(), new AppendResponse(Message.Type.APPEND_RESPONSE, nodeId, request.getRequestId(), String.valueOf(balance)));
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
                                     // verify balance request
                                 }
                                 default -> {
