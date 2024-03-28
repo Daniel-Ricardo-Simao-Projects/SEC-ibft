@@ -20,6 +20,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 
+import javax.swing.text.html.Option;
+
 import com.google.gson.Gson;
 
 public class SerenityLedgerService implements UDPService {
@@ -72,20 +74,47 @@ public class SerenityLedgerService implements UDPService {
         return future;
     }
 
-    public void verifyTransfer(AppendRequest request) {
+    public boolean verifyTransfer(AppendRequest request) {
 
         // Deserialize transfer request
         TransferRequest transferRequest = request.deserializeTransferMessage();
 
         PublicKey sourcePubKey = Authenticate.getPublicKeyFromString(transferRequest.getSourcePubKey());
 
-        // Check if the signature is valid
-        if (!Authenticate.verifyDigitalSignature(request.getStringToAppend(), request.getSignature(), sourcePubKey)) {
-            throw new RuntimeException("Invalid signature");
+        Account sourceAccount = service.getLedger().getAccounts().get(request.getSenderId());
+        if (sourceAccount == null) {
+            LOGGER.log(Level.WARNING, "Source account not found");
+            return false;
+        }
+        Account destAccount = service.getLedger().getAccounts().get(transferRequest.getDestClientId());
+        if (destAccount == null) {
+            LOGGER.log(Level.WARNING, "Destination account not found");
+            return false;
         }
 
-        // Check if the source account exists
-        // Optional<Account> sourceAccount = service.getAccounts()
+        // Check if the signature is valid
+        if (!Authenticate.verifyDigitalSignature(request.getStringToAppend(), request.getSignature(), sourcePubKey)) {
+            LOGGER.log(Level.WARNING, "Invalid signature");
+            return false;
+        }
+
+        if (transferRequest.getSourcePubKey().equals(transferRequest.getDestPubKey())) {
+            LOGGER.log(Level.WARNING, "Source and destination accounts are the same, not allowed");
+            return false;
+        }
+
+        if (transferRequest.getAmount() <= 0) {
+            LOGGER.log(Level.WARNING, "Invalid amount");
+            return false;
+        }
+
+        if (!sourcePubKey.equals(Authenticate.readPublicKey("../Utilities/keys/" + request.getSenderId() + "Pub.key"))) {
+            LOGGER.log(Level.WARNING, "The public key does not match the sender's public key");
+            return false;
+        }
+        
+        return true;
+
     }
 
     @Override
@@ -108,8 +137,10 @@ public class SerenityLedgerService implements UDPService {
                                                     nodeId, request.getStringToAppend(),
                                                     message.getSenderId()));
 
-                                    verifyTransfer(request);
-
+                                    if (!verifyTransfer(request)) {
+                                        link.send(message.getSenderId(), new AppendResponse(Message.Type.APPEND_RESPONSE, nodeId, request.getRequestId(), ""));
+                                        return;
+                                    }
                                     CompletableFuture<AppendResponse> responseFuture = callConsensusInstance(request);
 
                                     try {

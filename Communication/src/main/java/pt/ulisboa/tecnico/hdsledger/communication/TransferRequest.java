@@ -9,11 +9,14 @@ public class TransferRequest {
 
     private String destPubKey;
 
+    private String destClientId;
+
     private int amount;
 
-    public TransferRequest(PublicKey sourcePubKey, PublicKey destPubKey, int amount) {
+    public TransferRequest(PublicKey sourcePubKey, PublicKey destPubKey, String destClientId, int amount) {
         this.sourcePubKey = Base64.getEncoder().encodeToString(sourcePubKey.getEncoded());
         this.destPubKey = Base64.getEncoder().encodeToString(destPubKey.getEncoded());
+        this.destClientId = destClientId;
         this.amount = amount;
     }
 
@@ -21,24 +24,16 @@ public class TransferRequest {
         return sourcePubKey;
     }
 
-    public void setSourcePubKey(String sourcePubKey) {
-        this.sourcePubKey = sourcePubKey;
-    }
-
     public String getDestPubKey() {
         return destPubKey;
-    }
-
-    public void setDestPubKey(String destPubKey) {
-        this.destPubKey = destPubKey;
     }
 
     public int getAmount() {
         return amount;
     }
 
-    public void setAmount(int amount) {
-        this.amount = amount;
+    public String getDestClientId() {
+        return destClientId;
     }
 
 }

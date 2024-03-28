@@ -36,14 +36,16 @@ public class ClientService {
         this.link = new Link(clientConfig, clientConfig.getPort(), nodeConfigs, AppendResponse.class);
     }
 
-    public boolean transfer(PublicKey source, PublicKey destination, int amount) {
+    public boolean transfer(PublicKey source, PublicKey destination, String destId, int amount) {
         System.out.println("Transfering amount: " + amount + "...");
 
-        TransferRequest transferRequest = new TransferRequest(source, destination, amount);
+        TransferRequest transferRequest = new TransferRequest(source, destination, destId, amount);
         
         String requestTransferSerialized = new Gson().toJson(transferRequest);
         
-        requestAppend(requestTransferSerialized, Type.TRANSFER);
+        if (requestAppend(requestTransferSerialized, Type.TRANSFER).equals("")) {
+            return false;
+        }
 
         return true;
     }

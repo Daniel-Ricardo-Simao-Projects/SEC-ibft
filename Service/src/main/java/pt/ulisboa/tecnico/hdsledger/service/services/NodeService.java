@@ -38,8 +38,6 @@ public class NodeService implements UDPService {
     private static final CustomLogger LOGGER = new CustomLogger(NodeService.class.getName());
     // Nodes configurations
     private final ProcessConfig[] nodesConfig;
-    // Client configurations
-    private final ProcessConfig[] clientConfigs;
 
     // Current node is leader
     private final ProcessConfig config;
@@ -80,7 +78,6 @@ public class NodeService implements UDPService {
         this.config = config;
         this.leaderConfig = leaderConfig;
         this.nodesConfig = nodesConfig;
-        this.clientConfigs = clientConfigs;
 
         this.prepareMessages = new MessageBucket(nodesConfig.length);
         this.commitMessages = new MessageBucket(nodesConfig.length);
