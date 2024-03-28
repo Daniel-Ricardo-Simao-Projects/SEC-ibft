@@ -25,7 +25,13 @@ public class ClientService {
     // Link to communicate with nodes
     private final Link link;
 
-    private final Map<Integer, AppendResponse> responses = new HashMap<>();
+    // private final Map<Integer, AppendResponse> responses = new HashMap<>();
+
+    private final Map<Integer, List<AppendResponse>> responses = new HashMap<>(); // Use List to store multiple responses
+
+    private final int quorumSize;
+
+    private final int f;
 
     // Current request ID
     private AtomicInteger requestIdCounter = new AtomicInteger(0);
@@ -34,6 +40,11 @@ public class ClientService {
         this.config = clientConfig;
 
         this.link = new Link(clientConfig, clientConfig.getPort(), nodeConfigs, AppendResponse.class);
+
+        int nodeCount = nodeConfigs.length;
+
+        f = Math.floorDiv(nodeCount - 1, 3);
+        quorumSize = Math.floorDiv(nodeCount + f, 2) + 1;
     }
 
     public boolean transfer(PublicKey source, PublicKey destination, String destId, int amount) {
@@ -85,10 +96,18 @@ public class ClientService {
         new Thread(() -> {
             try {
                 while (true) {
-                    AppendResponse appendResponse = responses.get(requestId);
-                    if (appendResponse != null) {
-                        latch.countDown(); // Release the latch when the response is received
-                        break;
+                    List<AppendResponse> appendResponses = responses.get(requestId);
+                    if (appendResponses != null && appendResponses.size() >= quorumSize) { // Check if 3 responses are received
+                        Map<String, Integer> responseCounts = new HashMap<>();
+                        for (AppendResponse response : appendResponses) {
+                            responseCounts.put(response.getResponse(), responseCounts.getOrDefault(response.getResponse(), 0) + 1);
+                        }
+                        for (int count : responseCounts.values()) {
+                            if (count >= quorumSize) {
+                                latch.countDown(); // Release the latch when a quorum is achieved
+                                break;
+                            }
+                        }
                     }
                     Thread.sleep(50);
                 }
@@ -104,14 +123,29 @@ public class ClientService {
             e.printStackTrace();
         }
 
-        AppendResponse appendResponse = responses.get(requestId);
-        if (appendResponse != null) {
-            return appendResponse.getResponse();
+        List<AppendResponse> appendResponses = responses.get(requestId);
+        if (appendResponses != null && appendResponses.size() >= quorumSize) { // Check if 3 responses are received
+            // return most common response
+            Map<String, Integer> responseCounts = new HashMap<>();
+            for (AppendResponse response : appendResponses) {
+                responseCounts.put(response.getResponse(), responseCounts.getOrDefault(response.getResponse(), 0) + 1);
+            }
+
+            String mostCommonResponse = "";
+
+            for (Map.Entry<String, Integer> entry : responseCounts.entrySet()) {
+                if (entry.getValue() > responseCounts.getOrDefault(mostCommonResponse, 0)) {
+                    mostCommonResponse = entry.getKey();
+                }
+            }
+
+            return mostCommonResponse;
         } else {
             // Handle timeout or other scenarios
-            return new String();
+            return "";
         }
     }
+
 
     public void listen() {
         try {
@@ -132,7 +166,7 @@ public class ClientService {
                                                     config.getId(), message.getSenderId()));
 
                                     AppendResponse response = (AppendResponse) message;
-                                    responses.put(response.getRequestId(), response);
+                                    responses.computeIfAbsent(response.getRequestId(), k -> new ArrayList<>()).add(response); // Store responses in the map
                                 }
 
                                 case ACK ->
