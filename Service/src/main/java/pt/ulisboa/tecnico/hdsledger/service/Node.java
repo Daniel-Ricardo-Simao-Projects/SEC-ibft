@@ -61,7 +61,7 @@ public class Node {
             Link linkToClients = new Link(nodeConfig, nodeConfig.getClientPort(), clients, AppendRequest.class);
 
             // Services that implement listen from UDPService
-            NodeService nodeService = new NodeService(linkToNodes, nodeConfig, leaderConfig,
+            NodeService nodeService = new NodeService(linkToNodes, nodeConfig, clients, leaderConfig,
                     nodeConfigs);
 
             SerenityLedgerService serenityLedgerService = new SerenityLedgerService(id, clients, nodeService,

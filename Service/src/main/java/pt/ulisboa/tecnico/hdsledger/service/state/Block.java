@@ -1,18 +1,19 @@
 package pt.ulisboa.tecnico.hdsledger.service.state;
 
 import java.io.Serializable;
+import java.util.Base64;
 
 public class Block implements Serializable {
     private String value;
 
     private String clientID;
 
-    private byte[] signature;
+    private String signature;
 
     public Block(String value, String clientID, byte[] signature) {
         this.value = value;
         this.clientID = clientID;
-        this.signature = signature;
+        this.signature = Base64.getEncoder().encodeToString(signature);
     }
 
 	public String getValue() {
@@ -32,10 +33,10 @@ public class Block implements Serializable {
 	}
 
 	public byte[] getSignature() {
-		return signature;
+		return Base64.getDecoder().decode(signature);
 	}
 
-	public void setSignature(byte[] signature) {
+	public void setSignature(String signature) {
 		this.signature = signature;
 	}
 

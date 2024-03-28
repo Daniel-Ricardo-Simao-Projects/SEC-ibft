@@ -14,7 +14,9 @@ import com.google.gson.Gson;
 
 import pt.ulisboa.tecnico.hdsledger.communication.*;
 import pt.ulisboa.tecnico.hdsledger.communication.builder.ConsensusMessageBuilder;
+import pt.ulisboa.tecnico.hdsledger.service.models.Account;
 import pt.ulisboa.tecnico.hdsledger.service.models.InstanceInfo;
+import pt.ulisboa.tecnico.hdsledger.service.models.Ledger;
 import pt.ulisboa.tecnico.hdsledger.service.models.MessageBucket;
 import pt.ulisboa.tecnico.hdsledger.service.state.Block;
 import pt.ulisboa.tecnico.hdsledger.utilities.CustomLogger;
@@ -36,6 +38,8 @@ public class NodeService implements UDPService {
     private static final CustomLogger LOGGER = new CustomLogger(NodeService.class.getName());
     // Nodes configurations
     private final ProcessConfig[] nodesConfig;
+    // Client configurations
+    private final ProcessConfig[] clientConfigs;
 
     // Current node is leader
     private final ProcessConfig config;
@@ -64,22 +68,25 @@ public class NodeService implements UDPService {
     // Last decided consensus instance
     private final AtomicInteger lastDecidedConsensusInstance = new AtomicInteger(0);
 
-    // Ledger (for now, just a list of strings)
-    private ArrayList<String> ledger = new ArrayList<String>();
+    // Ledger
+    private Ledger ledger;    
 
     private final Map<Integer, Map<Integer, Boolean>> sentRoundChange = new ConcurrentHashMap<>();
 
-    public NodeService(Link link, ProcessConfig config,
+    public NodeService(Link link, ProcessConfig config, ProcessConfig[] clientConfigs,
             ProcessConfig leaderConfig, ProcessConfig[] nodesConfig) {
 
         this.link = link;
         this.config = config;
         this.leaderConfig = leaderConfig;
         this.nodesConfig = nodesConfig;
+        this.clientConfigs = clientConfigs;
 
         this.prepareMessages = new MessageBucket(nodesConfig.length);
         this.commitMessages = new MessageBucket(nodesConfig.length);
         this.roundChangeMessages = new MessageBucket(nodesConfig.length);
+    
+        this.ledger = new Ledger(clientConfigs);
     }
 
     public ProcessConfig getConfig() {
@@ -90,7 +97,7 @@ public class NodeService implements UDPService {
         return this.consensusInstance.get();
     }
 
-    public ArrayList<String> getLedger() {
+    public Ledger getLedger() {
         return this.ledger;
     }
 
@@ -476,17 +483,18 @@ public class NodeService implements UDPService {
             synchronized(ledger) {
 
                 // Increment size of ledger to accommodate current instance
-                ledger.ensureCapacity(consensusInstance);
-                while (ledger.size() < consensusInstance - 1) {
-                    ledger.add("");
+                ArrayList<String> ledgerList = ledger.getLedgerList();
+                ledgerList.ensureCapacity(consensusInstance);
+                while (ledgerList.size() < consensusInstance - 1) {
+                    ledgerList.add("");
                 }
 
-                ledger.add(consensusInstance - 1, value);
+                ledgerList.add(consensusInstance - 1, value);
 
                 LOGGER.log(Level.INFO,
                         MessageFormat.format(
                                 "{0} - Current Ledger: {1}",
-                                config.getId(), String.join("", ledger)));
+                                config.getId(), String.join("", ledgerList)));
             }
 
             lastDecidedConsensusInstance.getAndIncrement();

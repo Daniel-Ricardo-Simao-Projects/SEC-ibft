@@ -14,10 +14,10 @@ public class ClientParser {
 
         while (true) {
             System.out.println("--------- MENU ----------");
-            System.out.println("1 - append <string>");
-            System.out.println("2 - transfer <dest> <amount>");
-            System.out.println("3 - balance");
-            System.out.println("4 - exit");
+            //System.out.println("1 - append <string>");
+            System.out.println("1 - transfer <dest> <amount>");
+            System.out.println("2 - balance");
+            System.out.println("3 - exit");
             System.out.print("Enter a command: ");
             String input = scanner.nextLine();
 
@@ -25,15 +25,15 @@ public class ClientParser {
             String command = commandAndArgument[0].toLowerCase();
 
             switch (command) {
-                case "append":
-                    if (commandAndArgument.length == 2) {
-                        String appendString = commandAndArgument[1];
-                        String response = clientService.requestAppend(appendString, Type.APPEND);
-                        System.out.println("String appended: " + String.join("", response));
-                    } else {
-                        System.out.println("Invalid append command. Usage: append <string>");
-                    }
-                    break;
+                // case "append":
+                //     if (commandAndArgument.length == 2) {
+                //         String appendString = commandAndArgument[1];
+                //         String response = clientService.requestAppend(appendString, Type.APPEND);
+                //         System.out.println("String appended: " + String.join("", response));
+                //     } else {
+                //         System.out.println("Invalid append command. Usage: append <string>");
+                //     }
+                //     break;
                 case "transfer":
                     if (commandAndArgument.length == 3) {
                         String destination = commandAndArgument[1];

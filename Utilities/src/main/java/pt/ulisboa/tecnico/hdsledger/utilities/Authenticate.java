@@ -1,6 +1,8 @@
 package pt.ulisboa.tecnico.hdsledger.utilities;
 
 import javax.crypto.Mac;
+
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.Key;
@@ -11,6 +13,7 @@ import java.security.Signature;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Arrays;
+import java.util.Base64;
 
 public class Authenticate {
 
@@ -44,12 +47,17 @@ public class Authenticate {
         return signatureBytes;
     }
 
-    private static boolean verifyDigitalSignature(String data, byte[] signatureBytes, PublicKey publicKey)
-            throws Exception {
-        Signature signature = Signature.getInstance("SHA256withRSA");
-        signature.initVerify(publicKey);
-        signature.update(data.getBytes());
-        return signature.verify(signatureBytes);
+    public static boolean verifyDigitalSignature(String data, byte[] signatureBytes, PublicKey publicKey) {
+        try {
+            Signature signature = Signature.getInstance("SHA256withRSA");
+            signature.initVerify(publicKey);
+            signature.update(data.getBytes());
+            return signature.verify(signatureBytes);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+        
     }
 
     public static byte[] createMAC(byte[] bytes, Key key) throws Exception {
@@ -73,10 +81,28 @@ public class Authenticate {
         return keyFacPriv.generatePrivate(privSpec);
     }
 
-    public static PublicKey readPublicKey(String publicKeyPath) throws Exception {
-        byte[] pubEncoded = Files.readAllBytes(Paths.get(publicKeyPath));
-        X509EncodedKeySpec pubSpec = new X509EncodedKeySpec(pubEncoded);
-        KeyFactory keyFacPub = KeyFactory.getInstance("RSA");
-        return keyFacPub.generatePublic(pubSpec);
+    public static PublicKey readPublicKey(String publicKeyPath) {
+        try {
+            byte[] pubEncoded = Files.readAllBytes(Paths.get(publicKeyPath));
+            X509EncodedKeySpec pubSpec = new X509EncodedKeySpec(pubEncoded);
+            KeyFactory keyFacPub = KeyFactory.getInstance("RSA");
+            return keyFacPub.generatePublic(pubSpec);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+        
+    }
+
+    public static PublicKey getPublicKeyFromString(String publicKeyString) {
+        try {
+            byte[] pubEncoded = Base64.getDecoder().decode(publicKeyString);
+            X509EncodedKeySpec pubSpec = new X509EncodedKeySpec(pubEncoded);
+            KeyFactory keyFacPub = KeyFactory.getInstance("RSA");
+            return keyFacPub.generatePublic(pubSpec);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 }
