@@ -121,11 +121,6 @@ public class NodeService implements UDPService {
     public void startConsensus(String blockSerialized) {
 
         Block block = new Gson().fromJson(blockSerialized, Block.class);
-        Transaction transaction = block.getTransaction();
-        String value = transaction.getValueSignature();
-        String clientId = transaction.getSourceClientId();
-        byte[] clientSignature = transaction.getSignature();
-
         // Set initial consensus values
         int localConsensusInstance = this.consensusInstance.incrementAndGet();
         InstanceInfo existingConsensus = this.instanceInfo.put(localConsensusInstance, new InstanceInfo(blockSerialized));
@@ -144,15 +139,23 @@ public class NodeService implements UDPService {
 
         // Leader broadcasts PRE-PREPARE message
         if (this.config.isLeader()) {
+
+            ArrayList<Transaction> transactions = block.getTransactions();
+
+            for (Transaction transaction : transactions) {
+                String value = transaction.getValueSignature();
+                String clientId = transaction.getSourceClientId();
+                byte[] clientSignature = transaction.getSignature();
             
-            // Verify client signature
-            if (!Authenticate.verifySignature(value, clientSignature, "../Utilities/keys/" + clientId + "Pub.key")) {
-                LOGGER.log(Level.WARNING,
-                        MessageFormat.format("{0} - Invalid client signature for value {1}", config.getId(), value));
-                return;
-            } else {
-                LOGGER.log(Level.INFO,
-                        MessageFormat.format("{0} - Valid client signature for value {1}", config.getId(), value));
+                // Verify client signature
+                if (!Authenticate.verifySignature(value, clientSignature, "../Utilities/keys/" + clientId + "Pub.key")) {
+                    LOGGER.log(Level.WARNING,
+                            MessageFormat.format("{0} - Invalid client signature for value {1}", config.getId(), value));
+                    return;
+                } else {
+                    LOGGER.log(Level.INFO,
+                            MessageFormat.format("{0} - Valid client signature for value {1}", config.getId(), value));
+                }
             }
             
             InstanceInfo instance = this.instanceInfo.get(localConsensusInstance);
@@ -226,18 +229,22 @@ public class NodeService implements UDPService {
 
         // Verify client signature
         Block block = new Gson().fromJson(blockSerialized, Block.class);
-        Transaction transaction = block.getTransaction();
-        String value = transaction.getValueSignature();
-        String clientId = transaction.getSourceClientId();
-        byte[] clientSignature = transaction.getSignature();
 
-        if (!Authenticate.verifySignature(value, clientSignature, "../Utilities/keys/" + clientId + "Pub.key")) {
-            LOGGER.log(Level.WARNING,
-                MessageFormat.format("{0} - Invalid client signature for value {1}", config.getId(), value));
-            return;
-        } else {
-            LOGGER.log(Level.INFO,
-                MessageFormat.format("{0} - Valid client signature for value {1}", config.getId(), value));
+        ArrayList<Transaction> transactions = block.getTransactions();
+
+        for (Transaction transaction : transactions) {
+            String value = transaction.getValueSignature();
+            String clientId = transaction.getSourceClientId();
+            byte[] clientSignature = transaction.getSignature();
+
+            if (!Authenticate.verifySignature(value, clientSignature, "../Utilities/keys/" + clientId + "Pub.key")) {
+                LOGGER.log(Level.WARNING,
+                    MessageFormat.format("{0} - Invalid client signature for value {1}", config.getId(), value));
+                return;
+            } else {
+                LOGGER.log(Level.INFO,
+                    MessageFormat.format("{0} - Valid client signature for value {1}", config.getId(), value));
+            }
         }
 
         if (roundChangeMessages.justifyPrePrepare(config.getId(), consensusInstance, round, blockSerialized)) {
@@ -492,10 +499,12 @@ public class NodeService implements UDPService {
 
                 Block block = new Gson().fromJson(value, Block.class);
 
-                Transaction transaction = block.getTransaction();
+                ArrayList<Transaction> transactions = block.getTransactions();
 
-                accounts.get(transaction.getSourceClientId()).subtractBalance(transaction.getAmount() + transaction.getFee());
-                accounts.get(transaction.getDestClientId()).addBalance(transaction.getAmount());
+                for (Transaction transaction : transactions) {
+                    accounts.get(transaction.getSourceClientId()).subtractBalance(transaction.getAmount() + transaction.getFee());
+                    accounts.get(transaction.getDestClientId()).addBalance(transaction.getAmount());
+                }
 
                 LOGGER.log(Level.INFO,
                         MessageFormat.format(

@@ -57,7 +57,8 @@ public class SerenityLedgerService implements UDPService {
                 transferRequest.getDestClientId(), transferRequest.getAmount(), request.getStringToAppend(), request.getSignature());
 
         // Create new Block
-        Block block = new Block(transaction);
+        Block block = new Block();
+        block.addTransaction(transaction);
         String blockSerialized = new Gson().toJson(block);
 
         // LOGGER.log(Level.INFO, MessageFormat.format("{0} - Starting consensus instance for block: {1}", nodeId, block.toString()));

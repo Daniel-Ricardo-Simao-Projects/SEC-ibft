@@ -3,31 +3,34 @@ package pt.ulisboa.tecnico.hdsledger.service.state;
 import pt.ulisboa.tecnico.hdsledger.service.models.Transaction;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Base64;
 
 public class Block implements Serializable {
 
-	private Transaction transaction;
+	// Transactions list in the block with fixed size
+	private ArrayList<Transaction> transactions = new ArrayList<>(1);
 
-    public Block(Transaction transaction) {
-		this.transaction = transaction;
-    }
-
-	public Transaction getTransaction() {
-		return transaction;
+	public Block() {
+		// Empty constructor
 	}
 
-	public void setTransaction(Transaction transaction) {
-		this.transaction = transaction;
+	public ArrayList<Transaction> getTransactions() {
+		return transactions;
+	}
+
+	public void addTransaction(Transaction transaction) {
+		transactions.add(transaction);
+	}
+
+	public void setTransactions(ArrayList<Transaction> transactions) {
+		this.transactions = transactions;
 	}
 
 	@Override
 	public String toString() {
 		return "Block{" +
-				// "value='" + value + '\'' +
-				// ", clientID='" + clientID + '\'' +
-				// ", signature='" + signature + '\'' +
-				", transaction=" + transaction.toString() +
+				"transactions=" + transactions.toString() +
 				'}';
 	}
 }
