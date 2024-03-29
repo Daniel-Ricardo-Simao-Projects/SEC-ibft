@@ -102,9 +102,7 @@
 %-------------------------------------------------------------------------------
 \begin{abstract}
 %-------------------------------------------------------------------------------
-Your abstract text goes here. Just a few facts. Whet our appetites.
-Not more than 200 words, if possible, and preferably closer to 150.
-ONLY IF WE HAVE SPACE
+DO ABSTRACT ONLY IF WE HAVE SPACE FOR IT
 \end{abstract}
 
 
@@ -112,7 +110,7 @@ ONLY IF WE HAVE SPACE
 \section{System Design Overview}
 %-------------------------------------------------------------------------------
 
-Our highly dependable system follows a layered architecture designed for scalability and fault tolerance. The key components are:
+Our system follows a layered architecture designed for scalability and fault tolerance. The key components are:
 
 \begin{enumerate}
     \item \textbf{Client Application Interface:} This user-facing layer acts as the entry point for user interactions. It captures user requests and transmits them securely to the Client Service. 
@@ -132,7 +130,7 @@ This layered architecture promotes modularity and separation of concerns. Each l
 \section{Relevant Implementation Aspects}
 %-------------------------------------------------------------------------------
 
-This section highlights some key implementation aspects of our highly dependable system:
+This section highlights some key implementation aspects of our system:
 
 \subsection{IBFT}
 We leverage the Istanbul BFT (IBFT) protocol for consensus, accordingly to the official IBFT paper \cite{ibft-paper}, ensuring fault tolerance even in the presence of Byzantine failures (nodes exhibiting arbitrary behavior). The implementation has been thoroughly reviewed and corrected since the initial stages of the project.
@@ -149,19 +147,52 @@ The system maintains a ledger consisting of a blockchain structure where each bl
 \subsection{Client-Side Verification}
 When a client queries their account balance, they must receive confirmation from 2f+1 nodes to ensure the retrieved value's accuracy. This requirement arises due to the presence of account states within the ledger. While using a system like UTXO could potentially offer advantages, time constraints during development prevented its implementation.
 
+\subsection{Meeting Application Requirements}
+
+Our system design effectively meets the following application requirements:
+
+\begin{itemize}
+\item \textbf{Non-Negative Account Balances:} The system enforces non-negative account balances by rejecting any transaction attempting to spend more money than the account's current balance. Clients attempting such transfers will receive an error message.
+
+\item \textbf{Account State Protection:} Unauthorized users cannot modify account states. Each transaction requires a digital signature, ensuring only the legitimate owner of an account can initiate transfers. This digital signature acts as an authorization mechanism, preventing unauthorized access and modifications.
+
+\item \textbf{Non-Repudiation of Operations:} We achieve non-repudiation through a combination of digital signatures and nonces. Each transaction is accompanied by a digital signature that binds the operation to the account owner. Additionally, we use a nonce, which is an incrementing number for each request sent by a client. The server verifies that the received nonce is greater than any previously received nonce for the same client. This prevents replay attacks and ensures that the client cannot repudiate a previously authorized transaction.
+\end{itemize}
+
+These features, combined with the Byzantine Fault Tolerance provided by the IBFT protocol, guarantee the integrity and security of the system's state, upholding the required application-level properties.
+
 %-------------------------------------------------------------------------------
 \section{Behavior under attack}
 %-------------------------------------------------------------------------------
 
-The experimental evaluation that shows that the system is dependable in the
-presence of Byzantine behavior.
+This section evaluates our system's dependability under Byzantine faults, where nodes (clients or servers) exhibit arbitrary and potentially malicious behavior.
 
-%-------------------------------------------------------------------------------
-\section{Tests}
-%-------------------------------------------------------------------------------
+\subsection{Experimental Setup}
 
-Sucint description of the tests that were performed to validate the system.
+We leveraged the configuration JSON file to introduce Byzantine behavior. Both clients and servers had a dedicated field within the JSON configuration specifying their Byzantine behavior mode.
 
+\subsection{Client-side Byzantine Faults} We explored various client-side Byzantine behaviors, including:
+    \begin{itemize}
+        \item Arbitrary spending: Clients attempted to spend more money than their account balance.
+        \item Double spending: Clients tried to spend the same funds twice.
+        \item Self-payment: Clients attempted to transfer funds from one account to itself disguised as another account.
+    \end{itemize}
+
+For all these scenarios, our system successfully prevented the malicious client from manipulating the ledger, ensuring overall system correctness. Most client-side Byzantine fault tests were conducted with two clients, as we deemed this sufficient to cover various attack vectors.
+
+\subsection{Server-side Byzantine Faults} We investigated a broader range of Byzantine behaviors for servers/nodes. Most tests involved a system with four nodes, allowing for a maximum of one faulty node. The explored server-side Byzantine behaviors included:
+    \begin{itemize}
+        \item Forged leadership: A node falsely claimed to be the leader, attempting to disrupt the consensus process.
+        \item Value alteration: Nodes tampered with the consensus value within messages.
+        \item Message spoofing: Nodes impersonated other nodes to trick the system into accepting fabricated messages and achieve a quorum.
+        \item Incorrect value transmission: Nodes deliberately sent wrong values to users.
+    \end{itemize}
+
+Our system successfully reached consensus in all server-side Byzantine fault tests. However, a significant performance difference was observed between scenarios requiring "Round Changes" and those that did not. Round Changes, a mechanism to maintain system liveness under faults, substantially increased the time required to reach consensus. While this ensures system progress even in challenging situations, it comes at the cost of reduced efficiency.
+
+\subsection{Discussion}
+
+The experimental evaluation demonstrates the effectiveness of our system in handling various Byzantine faults from both clients and servers. The system successfully prevented malicious actors from manipulating the ledger and disrupting overall system operation. The observed performance impact of Round Changes highlights a trade-off between liveness and efficiency, which can be further optimized in future iterations.
 
 %-------------------------------------------------------------------------------
 \bibliographystyle{plain}
