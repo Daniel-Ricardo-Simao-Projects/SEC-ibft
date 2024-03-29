@@ -109,7 +109,7 @@ with open(f"Client/src/main/resources/{client_config}") as f:
             sys.exit()
         pos += 1
 
-# signal.signal(signal.SIGINT, quit_handler)
+signal.signal(signal.SIGINT, quit_handler)
 
 while True:
     print("Type quit to quit")
