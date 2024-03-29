@@ -3,6 +3,7 @@ package pt.ulisboa.tecnico.hdsledger.service;
 import pt.ulisboa.tecnico.hdsledger.communication.AppendRequest;
 import pt.ulisboa.tecnico.hdsledger.communication.ConsensusMessage;
 import pt.ulisboa.tecnico.hdsledger.communication.Link;
+import pt.ulisboa.tecnico.hdsledger.service.models.TransactionQueue;
 import pt.ulisboa.tecnico.hdsledger.service.services.NodeService;
 import pt.ulisboa.tecnico.hdsledger.service.services.SerenityLedgerService;
 import pt.ulisboa.tecnico.hdsledger.utilities.CustomLogger;
@@ -36,11 +37,11 @@ public class Node {
             ProcessConfig[] clients = new ProcessConfigBuilder().fromFile(clientsConfigPath);
 
             LOGGER.log(Level.INFO, MessageFormat.format("{0} - Running at {1}:{2,number,#}; is leader: {3}; latency: {4,number,#}ms\n" + 
-                                                        "BIZANTINE TYPE: {5}",
+                                                        "BYZANTINE TYPE: {5}",
                     nodeConfig.getId(), nodeConfig.getHostname(), nodeConfig.getPort(),
                     nodeConfig.isLeader(), nodeConfig.getMessageDelay(), nodeConfig.getByzantineType()));
             
-            // bizantine test
+            // byzantine test
             if (nodeConfig.getByzantineType() == ByzantineType.FAKE_LEADER) {
                 nodeConfig.setLeader(true);
                 // Set the leader to itself inside node configs
@@ -60,12 +61,14 @@ public class Node {
 
             Link linkToClients = new Link(nodeConfig, nodeConfig.getClientPort(), clients, AppendRequest.class);
 
+            TransactionQueue transactionQueue = new TransactionQueue();
+
             // Services that implement listen from UDPService
             NodeService nodeService = new NodeService(linkToNodes, nodeConfig, clients, leaderConfig,
-                    nodeConfigs);
+                    nodeConfigs, transactionQueue);
 
             SerenityLedgerService serenityLedgerService = new SerenityLedgerService(id, clients, nodeService,
-                    linkToClients);
+                    linkToClients, transactionQueue);
 
             nodeService.listen();
             serenityLedgerService.listen();

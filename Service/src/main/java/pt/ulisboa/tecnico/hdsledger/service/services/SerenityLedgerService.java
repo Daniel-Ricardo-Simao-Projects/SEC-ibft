@@ -6,6 +6,7 @@ import pt.ulisboa.tecnico.hdsledger.communication.Message;
 import pt.ulisboa.tecnico.hdsledger.communication.TransferRequest;
 import pt.ulisboa.tecnico.hdsledger.communication.Link;
 import pt.ulisboa.tecnico.hdsledger.service.models.Transaction;
+import pt.ulisboa.tecnico.hdsledger.service.models.TransactionQueue;
 import pt.ulisboa.tecnico.hdsledger.utilities.Authenticate;
 import pt.ulisboa.tecnico.hdsledger.utilities.CustomLogger;
 import pt.ulisboa.tecnico.hdsledger.utilities.ProcessConfig;
@@ -40,11 +41,16 @@ public class SerenityLedgerService implements UDPService {
     // Link to communicate with blockchain nodes
     private final Link link;
 
-    public SerenityLedgerService(String nodeId, ProcessConfig[] clientConfigs, NodeService service, Link link) {
+    // Transaction queue
+    private TransactionQueue transactionQueue;
+
+    public SerenityLedgerService(String nodeId, ProcessConfig[] clientConfigs, NodeService service, Link link,
+                                 TransactionQueue transactionQueue) {
         this.clientConfigs = clientConfigs;
         this.nodeId = nodeId;
         this.service = service;
         this.link = link;
+        this.transactionQueue = transactionQueue;
     }
 
     public CompletableFuture<AppendResponse> callConsensusInstance(AppendRequest request) {
@@ -56,27 +62,28 @@ public class SerenityLedgerService implements UDPService {
                 request.getSenderId(), Authenticate.getPublicKeyFromString(transferRequest.getDestPubKey()),
                 transferRequest.getDestClientId(), transferRequest.getAmount(), request.getStringToAppend(), request.getSignature());
 
-        // Create new Block
-        Block block = new Block();
-        block.addTransaction(transaction);
-        String blockSerialized = new Gson().toJson(block);
+        transactionQueue.addTransaction(transaction);
 
-        // LOGGER.log(Level.INFO, MessageFormat.format("{0} - Starting consensus instance for block: {1}", nodeId, block.toString()));
-
-        service.startConsensus(blockSerialized);
+        if(transactionQueue.haveNecessaryTransactions()) {
+            Block block = new Block(transactionQueue.getBlockSize());
+            block.setTransactions(transactionQueue.getTransactions());
+            String blockSerialized = new Gson().toJson(block);
+            LOGGER.log(Level.INFO, MessageFormat.format("{0} - Starting consensus instance for block: {1}", nodeId, block.toString()));
+            service.startConsensus(blockSerialized);
+        }
 
         // Use a separate thread to check for consensus completion
         new Thread(() -> {
             try {
-                while (service.getLedger().getLedgerList().size() < service.getConsensusInstance()) {
+                /*while (service.getLedger().getLedgerList().size() < service.getConsensusInstance()) {
                     Thread.sleep(500);
-                }
+                }*/
 
                 AppendResponse response = new AppendResponse(Message.Type.APPEND_RESPONSE, nodeId,
                         request.getRequestId(), "SUCCESS");
 
                 future.complete(response);
-            } catch (InterruptedException e) {
+            } catch (Exception e) {
                 future.completeExceptionally(e);
             }
         }).start();

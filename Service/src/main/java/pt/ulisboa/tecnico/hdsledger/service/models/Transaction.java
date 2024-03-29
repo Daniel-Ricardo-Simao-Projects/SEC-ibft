@@ -77,4 +77,17 @@ public class Transaction {
                 ", signature=" + "byte[" + signature.length + "]" +
                 '}';
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (!(obj instanceof Transaction)) {
+            return false;
+        }
+        Transaction transaction = (Transaction) obj;
+        return transaction.sourceClientId.equals(sourceClientId) && transaction.destClientId.equals(destClientId) && transaction.amount == amount &&
+                transaction.fee == fee && transaction.valueSignature.equals(valueSignature);
+    }
 }

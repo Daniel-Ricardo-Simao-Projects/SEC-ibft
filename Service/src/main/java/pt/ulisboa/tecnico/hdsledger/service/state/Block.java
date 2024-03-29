@@ -9,10 +9,10 @@ import java.util.Base64;
 public class Block implements Serializable {
 
 	// Transactions list in the block with fixed size
-	private ArrayList<Transaction> transactions = new ArrayList<>(1);
+	private ArrayList<Transaction> transactions;
 
-	public Block() {
-		// Empty constructor
+	public Block(int maxSize) {
+		this.transactions = new ArrayList<>(maxSize);
 	}
 
 	public ArrayList<Transaction> getTransactions() {

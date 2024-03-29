@@ -61,13 +61,16 @@ public class NodeService implements UDPService {
     // Last decided consensus instance
     private final AtomicInteger lastDecidedConsensusInstance = new AtomicInteger(0);
 
+    // Transactions queue
+    private TransactionQueue transactionQueue;
+
     // Ledger
     private Ledger ledger;    
 
     private final Map<Integer, Map<Integer, Boolean>> sentRoundChange = new ConcurrentHashMap<>();
 
     public NodeService(Link link, ProcessConfig config, ProcessConfig[] clientConfigs,
-            ProcessConfig leaderConfig, ProcessConfig[] nodesConfig) {
+            ProcessConfig leaderConfig, ProcessConfig[] nodesConfig, TransactionQueue transactionQueue) {
 
         this.link = link;
         this.config = config;
@@ -77,6 +80,8 @@ public class NodeService implements UDPService {
         this.prepareMessages = new MessageBucket(nodesConfig.length);
         this.commitMessages = new MessageBucket(nodesConfig.length);
         this.roundChangeMessages = new MessageBucket(nodesConfig.length);
+
+        this.transactionQueue = transactionQueue;
     
         this.ledger = new Ledger(clientConfigs);
     }
@@ -492,6 +497,7 @@ public class NodeService implements UDPService {
                 for (Transaction transaction : transactions) {
                     accounts.get(transaction.getSourceClientId()).subtractBalance(transaction.getAmount() + transaction.getFee());
                     accounts.get(transaction.getDestClientId()).addBalance(transaction.getAmount());
+                    transactionQueue.removeTransaction(transaction);
                 }
 
                 LOGGER.log(Level.INFO,
