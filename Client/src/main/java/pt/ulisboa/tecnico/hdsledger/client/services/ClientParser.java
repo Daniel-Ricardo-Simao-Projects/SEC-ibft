@@ -53,7 +53,7 @@ public class ClientParser {
                             System.out.println("Error reading keys: " + e);
                         }
                     } else {
-                        System.out.println("Invalid tranfer command. Usage: transfer <dest> <amount>");
+                        System.out.println("Invalid transfer command. Usage: transfer <dest> <amount>");
                     }
                     break;
                 case "balance":

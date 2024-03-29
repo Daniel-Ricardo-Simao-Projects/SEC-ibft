@@ -5,6 +5,7 @@ import pt.ulisboa.tecnico.hdsledger.communication.AppendResponse;
 import pt.ulisboa.tecnico.hdsledger.communication.Message;
 import pt.ulisboa.tecnico.hdsledger.communication.TransferRequest;
 import pt.ulisboa.tecnico.hdsledger.communication.Link;
+import pt.ulisboa.tecnico.hdsledger.service.models.Transaction;
 import pt.ulisboa.tecnico.hdsledger.utilities.Authenticate;
 import pt.ulisboa.tecnico.hdsledger.utilities.CustomLogger;
 import pt.ulisboa.tecnico.hdsledger.utilities.ProcessConfig;
@@ -49,9 +50,17 @@ public class SerenityLedgerService implements UDPService {
     public CompletableFuture<AppendResponse> callConsensusInstance(AppendRequest request) {
         CompletableFuture<AppendResponse> future = new CompletableFuture<>();
 
+        TransferRequest transferRequest = request.deserializeTransferMessage();
+
+        Transaction transaction = new Transaction(Authenticate.getPublicKeyFromString(transferRequest.getSourcePubKey()),
+                request.getSenderId(), Authenticate.getPublicKeyFromString(transferRequest.getDestPubKey()),
+                transferRequest.getDestClientId(), transferRequest.getAmount(), request.getSignature());
+
         // Create new Block
-        Block block = new Block(request.getStringToAppend(), request.getSenderId(), request.getSignature());
+        Block block = new Block(request.getStringToAppend(), request.getSenderId(), request.getSignature(), transaction);
         String blockSerialized = new Gson().toJson(block);
+
+        // LOGGER.log(Level.INFO, MessageFormat.format("{0} - Starting consensus instance for block: {1}", nodeId, block.toString()));
 
         service.startConsensus(blockSerialized);
 
@@ -63,7 +72,7 @@ public class SerenityLedgerService implements UDPService {
                 }
 
                 AppendResponse response = new AppendResponse(Message.Type.APPEND_RESPONSE, nodeId,
-                        request.getRequestId(), service.getLedger().toString());
+                        request.getRequestId(), "SUCCESS");
 
                 future.complete(response);
             } catch (InterruptedException e) {
@@ -110,6 +119,11 @@ public class SerenityLedgerService implements UDPService {
 
         if (!sourcePubKey.equals(Authenticate.readPublicKey("../Utilities/keys/" + request.getSenderId() + "Pub.key"))) {
             LOGGER.log(Level.WARNING, "The public key does not match the sender's public key");
+            return false;
+        }
+
+        if (sourceAccount.getBalance() < transferRequest.getAmount() + transferRequest.getAmount() / 10) {
+            LOGGER.log(Level.WARNING, "Insufficient funds");
             return false;
         }
         

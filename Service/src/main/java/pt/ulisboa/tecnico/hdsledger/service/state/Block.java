@@ -1,5 +1,7 @@
 package pt.ulisboa.tecnico.hdsledger.service.state;
 
+import pt.ulisboa.tecnico.hdsledger.service.models.Transaction;
+
 import java.io.Serializable;
 import java.util.Base64;
 
@@ -10,10 +12,13 @@ public class Block implements Serializable {
 
     private String signature;
 
-    public Block(String value, String clientID, byte[] signature) {
+	private Transaction transaction;
+
+    public Block(String value, String clientID, byte[] signature, Transaction transaction) {
         this.value = value;
         this.clientID = clientID;
         this.signature = Base64.getEncoder().encodeToString(signature);
+		this.transaction = transaction;
     }
 
 	public String getValue() {
@@ -40,4 +45,21 @@ public class Block implements Serializable {
 		this.signature = signature;
 	}
 
+	public Transaction getTransaction() {
+		return transaction;
+	}
+
+	public void setTransaction(Transaction transaction) {
+		this.transaction = transaction;
+	}
+
+	@Override
+	public String toString() {
+		return "Block{" +
+				// "value='" + value + '\'' +
+				// ", clientID='" + clientID + '\'' +
+				// ", signature='" + signature + '\'' +
+				", transaction=" + transaction.toString() +
+				'}';
+	}
 }

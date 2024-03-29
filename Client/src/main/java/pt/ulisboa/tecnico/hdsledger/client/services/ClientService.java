@@ -48,7 +48,7 @@ public class ClientService {
     }
 
     public boolean transfer(PublicKey source, PublicKey destination, String destId, int amount) {
-        System.out.println("Transfering amount: " + amount + "...");
+        System.out.println("Transferring amount: " + amount + "...");
 
         TransferRequest transferRequest = new TransferRequest(source, destination, destId, amount);
         
@@ -117,7 +117,7 @@ public class ClientService {
         }).start();
 
         try {
-            // Block until the latch is released or until a timeout occurs (adjust timeout as needed)
+            // Block until the latch is released or until a timeout occurs
             latch.await(10, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
             e.printStackTrace();

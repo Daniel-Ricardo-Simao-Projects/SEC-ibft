@@ -14,10 +14,7 @@ import com.google.gson.Gson;
 
 import pt.ulisboa.tecnico.hdsledger.communication.*;
 import pt.ulisboa.tecnico.hdsledger.communication.builder.ConsensusMessageBuilder;
-import pt.ulisboa.tecnico.hdsledger.service.models.Account;
-import pt.ulisboa.tecnico.hdsledger.service.models.InstanceInfo;
-import pt.ulisboa.tecnico.hdsledger.service.models.Ledger;
-import pt.ulisboa.tecnico.hdsledger.service.models.MessageBucket;
+import pt.ulisboa.tecnico.hdsledger.service.models.*;
 import pt.ulisboa.tecnico.hdsledger.service.state.Block;
 import pt.ulisboa.tecnico.hdsledger.utilities.CustomLogger;
 import pt.ulisboa.tecnico.hdsledger.utilities.ProcessConfig;
@@ -495,7 +492,10 @@ public class NodeService implements UDPService {
 
                 TransferRequest transfer = new Gson().fromJson(block.getValue(), TransferRequest.class);
 
+                Transaction transaction = block.getTransaction();
+
                 accounts.get(block.getClientID()).subtractBalance(transfer.getAmount());
+                accounts.get(block.getClientID()).subtractBalance(transaction.getFee());
                 accounts.get(transfer.getDestClientId()).addBalance(transfer.getAmount());
 
                 LOGGER.log(Level.INFO,
