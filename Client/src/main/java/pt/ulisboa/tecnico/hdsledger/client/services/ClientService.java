@@ -48,6 +48,15 @@ public class ClientService {
     }
 
     public boolean transfer(PublicKey source, PublicKey destination, String destId, int amount) {
+        if (config.getByzantineType().equals(ProcessConfig.ByzantineType.OVER_SPEND)) {
+            System.out.println("Over spending...");
+            amount += 10000;
+        } else if (config.getByzantineType().equals(ProcessConfig.ByzantineType.OVER_ACCESS)) {
+            System.out.println("Over accessing... Transfering from another account to this one...");
+            String sourceId = config.getId().equals("100") ? "101" : "100"; // Access another client account
+            destId = config.getId();
+            source = Authenticate.readPublicKey("../Utilities/keys/" + sourceId + "Pub.key");
+        }
         System.out.println("Transferring amount: " + amount + "...");
 
         TransferRequest transferRequest = new TransferRequest(source, destination, destId, amount);
@@ -88,6 +97,11 @@ public class ClientService {
         request.setSignature(signature);
 
         this.link.broadcast(request);
+        
+        if (config.getByzantineType().equals(ProcessConfig.ByzantineType.DOUBLE_SPEND)) {
+            System.out.println("Double spending...");
+            this.link.broadcast(request);
+        }
 
         // Use CountDownLatch to block until the response is received
         CountDownLatch latch = new CountDownLatch(1);

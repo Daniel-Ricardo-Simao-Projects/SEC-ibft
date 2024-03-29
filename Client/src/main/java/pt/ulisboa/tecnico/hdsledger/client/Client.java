@@ -7,13 +7,14 @@ import pt.ulisboa.tecnico.hdsledger.utilities.ProcessConfigBuilder;
 
 public class Client {
 
-    private static String clientsConfigPath = "src/main/resources/client_config.json";
+    private static String clientsConfigPath = "src/main/resources/";
     private static String nodesConfigPath = "../Service/src/main/resources/";
 
     public static void main(String[] args) {
         try {
             String id = args[0];
-            nodesConfigPath += args[1];
+            clientsConfigPath += args[1];
+            nodesConfigPath += args[2];
 
             ProcessConfig[] clientConfigs = loadProcessConfigs(clientsConfigPath);
             ProcessConfig[] nodeConfigs = loadProcessConfigs(nodesConfigPath);

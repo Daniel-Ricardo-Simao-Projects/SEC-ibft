@@ -9,6 +9,13 @@ import signal
 terminal = "kitty"
 
 # Blockchain node configuration file name
+client_configs = [
+    "client_regular_config.json",
+    "client_overspend.json",
+    "client_overaccess.json",
+    "client_double_spend.json",
+]
+
 server_configs = [
     "regular_config.json",
     "fake_leader.json",
@@ -18,7 +25,17 @@ server_configs = [
     "fake_signature_leader.json",
 ]
 
-choiceStr = input("Choose a configuration:\n"
+choiceStr = input("Choose a Client configuration:\n"
+                  "1 - Regular\n"
+                  "2 - Over Spend\n"
+                  "3 - Over Access\n"
+                  "4 - Double Spend\n"
+                  ">> ")
+
+choice = int(choiceStr)
+client_config = client_configs[choice-1]
+
+choiceStr = input("Choose a Server configuration:\n"
                   "1 - Regular\n"
                   "2 - Fake Leader\n"
                   "3 - Message Delay\n"
@@ -64,15 +81,15 @@ with open(f"Service/src/main/resources/{server_config}") as f:
             os.system(f"java -cp Utilities/out pt.ulisboa.tecnico.hdsledger.utilities.RSAKeyGenerator {priv_key_path} {pub_key_path}")
             if (terminal == "konsole"):
                 os.system(
-                    f"{terminal} > /dev/null 2>&1 --qwindowgeometry 300x1000+{str(pos*310)}+0 -e sh -c \"cd Service; mvn exec:java -Dexec.args='{key['id']} {server_config}' ; sleep 500\"")
+                    f"{terminal} > /dev/null 2>&1 --qwindowgeometry 300x1000+{str(pos*310)}+0 -e sh -c \"cd Service; mvn exec:java -Dexec.args='{key['id']} {server_config} {client_config}' ; sleep 500\"")
             else:
                 os.system(
-                    f"{terminal} > /dev/null 2>&1 sh -c \"cd Service; mvn exec:java -Dexec.args='{key['id']} {server_config}' ; sleep 500\"")
+                    f"{terminal} > /dev/null 2>&1 sh -c \"cd Service; mvn exec:java -Dexec.args='{key['id']} {server_config} {client_config}' ; sleep 500\"")
             sys.exit()
         pos += 1
         
 
-with open("Client/src/main/resources/client_config.json") as f:
+with open(f"Client/src/main/resources/{client_config}") as f:
     data = json.load(f)
     processes = list()
     for key in data:
@@ -85,14 +102,14 @@ with open("Client/src/main/resources/client_config.json") as f:
 
             if (terminal == "konsole"):
                 os.system(
-                    f"{terminal} > /dev/null 2>&1 --qwindowgeometry 300x1000+{str(pos*310)}+0 -e sh -c \"cd Client; mvn exec:java -Dexec.args='{key['id']} {server_config}' ; sleep 1000\"")
+                    f"{terminal} > /dev/null 2>&1 --qwindowgeometry 300x1000+{str(pos*310)}+0 -e sh -c \"cd Client; mvn exec:java -Dexec.args='{key['id']} {client_config} {server_config}' ; sleep 1000\"")
             else:
                 os.system(
-                    f"{terminal} > /dev/null 2>&1 sh -c \"cd Client; mvn exec:java -Dexec.args='{key['id']} {server_config}' ; sleep 1000\"")
+                    f"{terminal} > /dev/null 2>&1 sh -c \"cd Client; mvn exec:java -Dexec.args='{key['id']} {client_config} {server_config}' ; sleep 1000\"")
             sys.exit()
         pos += 1
 
-signal.signal(signal.SIGINT, quit_handler)
+# signal.signal(signal.SIGINT, quit_handler)
 
 while True:
     print("Type quit to quit")

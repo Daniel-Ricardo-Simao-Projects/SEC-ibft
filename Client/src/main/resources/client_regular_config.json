@@ -1,0 +1,14 @@
+[
+	{
+		"id": "100",
+		"hostname": "localhost",
+		"port": 4001,
+		"byzantineType": "NONE"
+	},
+	{
+		"id": "101",
+		"hostname": "localhost",
+		"port": 4002,
+		"byzantineType": "NONE"
+	}
+]
