@@ -30,8 +30,6 @@ public class NodeService implements UDPService {
     // Map to store the timer for each consensus instance
     private final Map<Integer, ScheduledFuture<?>> timers = new ConcurrentHashMap<>();
 
-    private boolean isRoundChanging = false;
-
     private static final CustomLogger LOGGER = new CustomLogger(NodeService.class.getName());
     // Nodes configurations
     private final ProcessConfig[] nodesConfig;
@@ -111,6 +109,24 @@ public class NodeService implements UDPService {
         return consensusMessage;
     }
 
+    public boolean verifyTransactionsSignatures(ArrayList<Transaction> transactions) {
+        for (Transaction transaction : transactions) {
+            String value = transaction.getValueSignature();
+            String clientId = transaction.getSourceClientId();
+            byte[] clientSignature = transaction.getSignature();
+
+            if (!Authenticate.verifySignature(value, clientSignature, "../Utilities/keys/" + clientId + "Pub.key")) {
+                LOGGER.log(Level.WARNING,
+                    MessageFormat.format("{0} - Invalid client signature for value {1}", config.getId(), value));
+                return false;
+            } else {
+                LOGGER.log(Level.INFO,
+                    MessageFormat.format("{0} - Valid client signature for value {1}", config.getId(), value));
+            }
+        }
+        return true;
+    }
+
     /*
      * Start an instance of consensus for a value
      * Only the current leader will start a consensus instance
@@ -142,20 +158,10 @@ public class NodeService implements UDPService {
 
             ArrayList<Transaction> transactions = block.getTransactions();
 
-            for (Transaction transaction : transactions) {
-                String value = transaction.getValueSignature();
-                String clientId = transaction.getSourceClientId();
-                byte[] clientSignature = transaction.getSignature();
-            
-                // Verify client signature
-                if (!Authenticate.verifySignature(value, clientSignature, "../Utilities/keys/" + clientId + "Pub.key")) {
-                    LOGGER.log(Level.WARNING,
-                            MessageFormat.format("{0} - Invalid client signature for value {1}", config.getId(), value));
-                    return;
-                } else {
-                    LOGGER.log(Level.INFO,
-                            MessageFormat.format("{0} - Valid client signature for value {1}", config.getId(), value));
-                }
+            if (!verifyTransactionsSignatures(transactions)) {
+                LOGGER.log(Level.WARNING,
+                    MessageFormat.format("{0} - Invalid client signature for transactions", config.getId()));
+                return;
             }
             
             InstanceInfo instance = this.instanceInfo.get(localConsensusInstance);
@@ -232,19 +238,10 @@ public class NodeService implements UDPService {
 
         ArrayList<Transaction> transactions = block.getTransactions();
 
-        for (Transaction transaction : transactions) {
-            String value = transaction.getValueSignature();
-            String clientId = transaction.getSourceClientId();
-            byte[] clientSignature = transaction.getSignature();
-
-            if (!Authenticate.verifySignature(value, clientSignature, "../Utilities/keys/" + clientId + "Pub.key")) {
-                LOGGER.log(Level.WARNING,
-                    MessageFormat.format("{0} - Invalid client signature for value {1}", config.getId(), value));
-                return;
-            } else {
-                LOGGER.log(Level.INFO,
-                    MessageFormat.format("{0} - Valid client signature for value {1}", config.getId(), value));
-            }
+        if (!verifyTransactionsSignatures(transactions)) {
+            LOGGER.log(Level.WARNING,
+                MessageFormat.format("{0} - Invalid client signature for transactions", config.getId()));
+            return;
         }
 
         if (roundChangeMessages.justifyPrePrepare(config.getId(), consensusInstance, round, blockSerialized)) {
@@ -271,19 +268,7 @@ public class NodeService implements UDPService {
                                     + "replying again to make sure it reaches the initial sender",
                             config.getId(), consensusInstance, round));
             PrepareMessage prepareMessage = new PrepareMessage(prePrepareMessage.getValue());
-
-            ConsensusMessage consensusMessage = new ConsensusMessageBuilder(config.getId(), Message.Type.PREPARE)
-                    .setConsensusInstance(consensusInstance)
-                    .setRound(round)
-                    .setMessage(prepareMessage.toJson())
-                    .setReplyTo(senderId)
-                    .setReplyToMessageId(senderMessageId)
-                    .build();
-            
-            // Sign message
-            byte[] signature = Authenticate.signData(consensusMessage.toString(), "../Utilities/keys/" + config.getId() + "Priv.key");
-            consensusMessage.setDigitalSignature(signature);
-            this.link.broadcast(consensusMessage);
+            sendPrepareMessage(prepareMessage, consensusInstance, round, senderId, senderMessageId);
 
             return;
         }
@@ -291,7 +276,10 @@ public class NodeService implements UDPService {
         resetTimer(consensusInstance);
 
         PrepareMessage prepareMessage = new PrepareMessage(prePrepareMessage.getValue());
+        sendPrepareMessage(prepareMessage, consensusInstance, round, senderId, senderMessageId);
+    }
 
+    public void sendPrepareMessage(PrepareMessage prepareMessage, int consensusInstance, int round, String senderId, int senderMessageId) {
         ConsensusMessage consensusMessage = new ConsensusMessageBuilder(config.getId(), Message.Type.PREPARE)
                 .setConsensusInstance(consensusInstance)
                 .setRound(round)
@@ -569,12 +557,10 @@ public class NodeService implements UDPService {
             byte[] signature = Authenticate.signData(consensusMessage.toString(), "../Utilities/keys/" + config.getId() + "Priv.key");
             consensusMessage.setDigitalSignature(signature);
             this.link.broadcast(consensusMessage);
-            isRoundChanging = false;
         } else if (roundChangeMessages.hasValidRoundChangeQuorum(config.getId(), consensusInstance, round)) {
             LOGGER.log(Level.INFO,
                     MessageFormat.format("{0} - Received valid ROUND CHANGE quorum for Consensus Instance {1}, Round {2}",
                             config.getId(), consensusInstance, round));
-            isRoundChanging = false;
         }
 
         if(roundChangeMessages.hasValidRoundChangeSet(config.getId(), consensusInstance, round, instance.getCurrentRound()) &&
@@ -695,7 +681,6 @@ public class NodeService implements UDPService {
                         config.getId(), localConsensusInstance, instance.getCurrentRound()));
 
         instance.setCurrentRound(instance.getCurrentRound() + 1);
-        isRoundChanging = true;
 
         // Set new leader for new round
         this.leaderConfig = nodesConfig[(instance.getCurrentRound() % nodesConfig.length) - 1];
