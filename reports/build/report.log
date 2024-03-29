@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023) (preloaded format=pdflatex 2024.1.18)  29 MAR 2024 11:50
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023) (preloaded format=pdflatex 2024.1.18)  29 MAR 2024 15:57
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -657,7 +657,10 @@ LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <9> not available
 (Font)              Font shape `OT1/ptm/b/n' tried instead on input line 100.
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <7> not available
 (Font)              Font shape `OT1/ptm/b/n' tried instead on input line 100.
- (build/report.bbl
+ [1{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}{/usr/share/texlive/texmf-dist/fonts/enc/dvips/base/8r.enc}
+
+
+] (build/report.bbl
 Package microtype Info: Loading generic protrusion settings for font family
 (microtype)             `pcr' (encoding: T1).
 (microtype)             For optimal results, create family-specific settings.
@@ -668,26 +671,25 @@ LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <7.4> not available
 (Font)              Font shape `OT1/ptm/b/n' tried instead on input line 6.
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <6> not available
 (Font)              Font shape `OT1/ptm/b/n' tried instead on input line 6.
-) [1{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}{/usr/share/texlive/texmf-dist/fonts/enc/dvips/base/8r.enc}
-
+) [2
 
 ] (build/report.aux)
 Package rerunfilecheck Info: File `report.out' has not changed.
-(rerunfilecheck)             Checksum: 1638C4016B73E4272062CC465224003D;517.
+(rerunfilecheck)             Checksum: 944D300F651985EDCF6A982AE90CAF32;1272.
  ) 
 Here is how much of TeX's memory you used:
- 22671 strings out of 477985
- 421178 string characters out of 5839380
- 1868388 words of memory out of 6000000
- 42311 multiletter control sequences out of 15000+600000
- 553592 words of font info for 176 fonts, out of 8000000 for 9000
+ 22705 strings out of 477985
+ 421534 string characters out of 5839380
+ 1869388 words of memory out of 6000000
+ 42317 multiletter control sequences out of 15000+600000
+ 554502 words of font info for 190 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
- 102i,9n,104p,1058b,448s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 102i,9n,104p,1058b,450s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/share/texlive/texmf-dist/fonts/type1/urw/courier/ucrr8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on build/report.pdf (1 page, 54977 bytes).
+Output written on build/report.pdf (2 pages, 58885 bytes).
 PDF statistics:
- 61 PDF objects out of 1000 (max. 8388607)
- 49 compressed objects within 1 object stream
- 12 named destinations out of 1000 (max. 500000)
- 54821 words of extra memory for PDF output out of 61914 (max. 10000000)
+ 91 PDF objects out of 1000 (max. 8388607)
+ 78 compressed objects within 1 object stream
+ 19 named destinations out of 1000 (max. 500000)
+ 54869 words of extra memory for PDF output out of 61914 (max. 10000000)
 

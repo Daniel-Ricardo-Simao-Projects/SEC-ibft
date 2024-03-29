@@ -112,7 +112,7 @@ ONLY IF WE HAVE SPACE
 \section{System Design Overview}
 %-------------------------------------------------------------------------------
 
-Our highly dependable system follows a layered architecture designed for scalability and fault tolerance. Let's delve into the key components:
+Our highly dependable system follows a layered architecture designed for scalability and fault tolerance. The key components are:
 
 \begin{enumerate}
     \item \textbf{Client Application Interface:} This user-facing layer acts as the entry point for user interactions. It captures user requests and transmits them securely to the Client Service. 
@@ -132,7 +132,22 @@ This layered architecture promotes modularity and separation of concerns. Each l
 \section{Relevant Implementation Aspects}
 %-------------------------------------------------------------------------------
 
-The most relevant implementation aspects; cite something like \cite{ibft-paper}.
+This section highlights some key implementation aspects of our highly dependable system:
+
+\subsection{IBFT}
+We leverage the Istanbul BFT (IBFT) protocol for consensus, accordingly to the official IBFT paper \cite{ibft-paper}, ensuring fault tolerance even in the presence of Byzantine failures (nodes exhibiting arbitrary behavior). The implementation has been thoroughly reviewed and corrected since the initial stages of the project.
+
+\subsection{Triggered Consensus}
+The IBFT protocol execution is optimized to initiate only when a specific number (X) of requests are queued. This reduces unnecessary consensus rounds and improves system efficiency. During the commit phase upon reaching a "DECIDE" state, the participating nodes process the requests accumulated in the queu, by removing them from the queue and executing them.
+
+\subsection{Parallel Consensus}
+Our system enables concurrent execution of multiple IBFT consensus instances. However, to maintain data consistency, ongoing instance Y waits for the completion of instance X (where X precedes Y) if transactions within Y depend on the outcome of transactions in X. This parallel execution can introduce potential complexities if such dependencies exist between concurrently processed requests. 
+
+\subsection{Ledger Design}
+The system maintains a ledger consisting of a blockchain structure where each block stores a predefined number (X) of transactions. Additionally, the ledger holds the current state of all accounts within the system.
+
+\subsection{Client-Side Verification}
+When a client queries their account balance, they must receive confirmation from 2f+1 nodes to ensure the retrieved value's accuracy. This requirement arises due to the presence of account states within the ledger. While using a system like UTXO could potentially offer advantages, time constraints during development prevented its implementation.
 
 %-------------------------------------------------------------------------------
 \section{Behavior under attack}
@@ -140,6 +155,13 @@ The most relevant implementation aspects; cite something like \cite{ibft-paper}.
 
 The experimental evaluation that shows that the system is dependable in the
 presence of Byzantine behavior.
+
+%-------------------------------------------------------------------------------
+\section{Tests}
+%-------------------------------------------------------------------------------
+
+Sucint description of the tests that were performed to validate the system.
+
 
 %-------------------------------------------------------------------------------
 \bibliographystyle{plain}
