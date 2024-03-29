@@ -17,21 +17,28 @@ public class Transaction {
 
     private int fee;
 
+    private String valueSignature;
+
     private byte[] signature;
 
     public Transaction(PublicKey sourcePubKey, String sourceClientId, PublicKey destPubKey, String destClientId,
-                       int amount, byte[] signature) {
+                       int amount, String valueSignature, byte[] signature) {
         this.sourcePubKey = Base64.getEncoder().encodeToString(sourcePubKey.getEncoded());
         this.sourceClientId = sourceClientId;
         this.destPubKey = Base64.getEncoder().encodeToString(destPubKey.getEncoded());
         this.destClientId = destClientId;
         this.amount = amount;
         this.fee = amount / 10; // 10% fee
+        this.valueSignature = valueSignature;
         this.signature = signature;
     }
 
     public String getSourcePubKey() {
         return sourcePubKey;
+    }
+
+    public String getSourceClientId() {
+        return sourceClientId;
     }
 
     public String getDestPubKey() {
@@ -49,6 +56,14 @@ public class Transaction {
     public int getFee() { return fee; }
 
     public void setFee(int fee) { this.fee = fee; }
+
+    public byte[] getSignature() {
+        return signature;
+    }
+
+    public String getValueSignature() {
+        return valueSignature;
+    }
 
     @Override
     public String toString() {

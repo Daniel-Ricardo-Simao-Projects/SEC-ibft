@@ -121,9 +121,10 @@ public class NodeService implements UDPService {
     public void startConsensus(String blockSerialized) {
 
         Block block = new Gson().fromJson(blockSerialized, Block.class);
-        String value = block.getValue();
-        String clientId = block.getClientID();
-        byte[] clientSignature = block.getSignature();
+        Transaction transaction = block.getTransaction();
+        String value = transaction.getValueSignature();
+        String clientId = transaction.getSourceClientId();
+        byte[] clientSignature = transaction.getSignature();
 
         // Set initial consensus values
         int localConsensusInstance = this.consensusInstance.incrementAndGet();
@@ -225,9 +226,10 @@ public class NodeService implements UDPService {
 
         // Verify client signature
         Block block = new Gson().fromJson(blockSerialized, Block.class);
-        String value = block.getValue();
-        String clientId = block.getClientID();
-        byte[] clientSignature = block.getSignature();
+        Transaction transaction = block.getTransaction();
+        String value = transaction.getValueSignature();
+        String clientId = transaction.getSourceClientId();
+        byte[] clientSignature = transaction.getSignature();
 
         if (!Authenticate.verifySignature(value, clientSignature, "../Utilities/keys/" + clientId + "Pub.key")) {
             LOGGER.log(Level.WARNING,
@@ -490,13 +492,10 @@ public class NodeService implements UDPService {
 
                 Block block = new Gson().fromJson(value, Block.class);
 
-                TransferRequest transfer = new Gson().fromJson(block.getValue(), TransferRequest.class);
-
                 Transaction transaction = block.getTransaction();
 
-                accounts.get(block.getClientID()).subtractBalance(transfer.getAmount());
-                accounts.get(block.getClientID()).subtractBalance(transaction.getFee());
-                accounts.get(transfer.getDestClientId()).addBalance(transfer.getAmount());
+                accounts.get(transaction.getSourceClientId()).subtractBalance(transaction.getAmount() + transaction.getFee());
+                accounts.get(transaction.getDestClientId()).addBalance(transaction.getAmount());
 
                 LOGGER.log(Level.INFO,
                         MessageFormat.format(
