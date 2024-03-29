@@ -2,7 +2,6 @@ package pt.ulisboa.tecnico.hdsledger.utilities;
 
 import javax.crypto.Mac;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.Key;

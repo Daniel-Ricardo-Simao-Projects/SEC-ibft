@@ -1,7 +1,5 @@
 package pt.ulisboa.tecnico.hdsledger.communication;
 
-import java.util.ArrayList;
-
 public class AppendResponse extends Message {
 
     private int requestId;

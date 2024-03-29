@@ -18,13 +18,13 @@ import pt.ulisboa.tecnico.hdsledger.service.state.Block;
 import java.io.IOException;
 import java.security.PublicKey;
 import java.text.MessageFormat;
-import java.text.ParseException;
-import java.util.Optional;
+import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
-
-import javax.swing.text.html.Option;
+import java.util.concurrent.*;
+import java.util.Map;
 
 import com.google.gson.Gson;
 
@@ -32,7 +32,7 @@ public class SerenityLedgerService implements UDPService {
     private static final CustomLogger LOGGER = new CustomLogger(SerenityLedgerService.class.getName());
 
     // Clients configurations
-    private final ProcessConfig[] clientConfigs;
+    //private final ProcessConfig[] clientConfigs;
 
     // Node identifier
     private final String nodeId;
@@ -46,13 +46,21 @@ public class SerenityLedgerService implements UDPService {
     // Transaction queue
     private TransactionQueue transactionQueue;
 
+    // clientNonces
+    private Map<String, Integer> clientNonces = new ConcurrentHashMap<>();
+
     public SerenityLedgerService(String nodeId, ProcessConfig[] clientConfigs, NodeService service, Link link,
                                  TransactionQueue transactionQueue) {
-        this.clientConfigs = clientConfigs;
+        //this.clientConfigs = clientConfigs;
         this.nodeId = nodeId;
         this.service = service;
         this.link = link;
         this.transactionQueue = transactionQueue;
+
+        // Initialize client nonces
+        for (ProcessConfig clientConfig : clientConfigs) {
+            clientNonces.put(clientConfig.getId(), -1);
+        }
     }
 
     public CompletableFuture<AppendResponse> callConsensusInstance(AppendRequest request) {
@@ -94,7 +102,6 @@ public class SerenityLedgerService implements UDPService {
     }
 
     public boolean verifyTransfer(AppendRequest request) {
-
         // Deserialize transfer request
         TransferRequest transferRequest = request.deserializeTransferMessage();
 
@@ -136,9 +143,16 @@ public class SerenityLedgerService implements UDPService {
             LOGGER.log(Level.WARNING, "Insufficient funds");
             throw new HDSSException(ErrorMessage.InsufficientFunds);
         }
+
+        // verify nonce
+        if (clientNonces.get(request.getSenderId()) >= request.getRequestId()) {
+            LOGGER.log(Level.WARNING, "Invalid nonce");
+            throw new HDSSException(ErrorMessage.InvalidNonce);
+        } else {
+            clientNonces.put(request.getSenderId(), request.getRequestId());
+        }
         
         return true;
-
     }
 
     @Override

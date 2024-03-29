@@ -52,7 +52,7 @@ public class NodeService implements UDPService {
     // Store if already received pre-prepare for a given <consensus, round>
     private final Map<Integer, Map<Integer, Boolean>> receivedPrePrepare = new ConcurrentHashMap<>();
 
-    private final Map<Integer, Map<Integer, Boolean>> receivedRoundChange = new ConcurrentHashMap<>();
+    // private final Map<Integer, Map<Integer, Boolean>> receivedRoundChange = new ConcurrentHashMap<>();
 
     // Consensus instance information per consensus instance
     private final Map<Integer, InstanceInfo> instanceInfo = new ConcurrentHashMap<>();

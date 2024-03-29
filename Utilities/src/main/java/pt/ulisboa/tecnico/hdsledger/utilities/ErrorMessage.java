@@ -14,7 +14,8 @@ public enum ErrorMessage {
     SameSourceAndDestination("Source and destination accounts are the same, not allowed"),
     InvalidAmount("Invalid amount"),
     PublicKeyMismatch("The public key does not match the sender's public key"),
-    InsufficientFunds("Insufficient funds");
+    InsufficientFunds("Insufficient funds"),
+    InvalidNonce("Invalid nonce");
 
     private final String message;
 

@@ -1,10 +1,8 @@
 package pt.ulisboa.tecnico.hdsledger.client.services;
 
 import java.security.PublicKey;
-import java.util.ArrayList;
 import java.util.Scanner;
 
-import pt.ulisboa.tecnico.hdsledger.communication.Message.Type;
 import pt.ulisboa.tecnico.hdsledger.utilities.Authenticate;
 
 public class ClientParser {

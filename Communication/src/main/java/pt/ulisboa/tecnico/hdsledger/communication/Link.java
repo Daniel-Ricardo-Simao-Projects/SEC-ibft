@@ -4,13 +4,11 @@ import com.google.gson.Gson;
 
 import pt.ulisboa.tecnico.hdsledger.communication.Message.Type;
 import pt.ulisboa.tecnico.hdsledger.utilities.*;
-import pt.ulisboa.tecnico.hdsledger.utilities.ProcessConfig.ByzantineType;
 
 import java.io.IOException;
 import java.net.*;
 import java.text.MessageFormat;
 import java.util.*;
-import java.util.concurrent.CompletionService;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;

@@ -11,7 +11,7 @@ import java.nio.charset.StandardCharsets;
 
 public class ProcessConfigBuilder {
 
-    private final ProcessConfig instance = new ProcessConfig();
+    //private final ProcessConfig instance = new ProcessConfig();
 
     public ProcessConfig[] fromFile(String path) {
         System.out.println(path);
