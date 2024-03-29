@@ -139,7 +139,7 @@ public class SerenityLedgerService implements UDPService {
             throw new HDSSException(ErrorMessage.PublicKeyMismatch);
         }
 
-        if (sourceAccount.getBalance() < transferRequest.getAmount() + transferRequest.getAmount() / 10) {
+        if (sourceAccount.getBalance() < transferRequest.getAmount() + transferRequest.getAmount() / 20) {
             LOGGER.log(Level.WARNING, "Insufficient funds");
             throw new HDSSException(ErrorMessage.InsufficientFunds);
         }

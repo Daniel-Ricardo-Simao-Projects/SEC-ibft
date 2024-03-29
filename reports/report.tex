@@ -161,6 +161,28 @@ Our system design effectively meets the following application requirements:
 
 These features, combined with the Byzantine Fault Tolerance provided by the IBFT protocol, guarantee the integrity and security of the system's state, upholding the required application-level properties.
 
+\subsection{Transaction Fees and Incentive Design}
+
+This subsection addresses the introduction of transaction fees within our system, a common feature in modern blockchains. Transaction fees serve a dual purpose:
+
+\begin{itemize}
+    \item \textbf{Discourage Spam:} A small fee per transaction discourages malicious actors from flooding the network with irrelevant transactions, thereby protecting system resources and maintaining network efficiency. This concept is similar to "gas" fees used in blockchains like Ethereum.
+    \item \textbf{Incentivize Block Production:} Transaction fees provide an economic incentive for nodes to participate in the consensus process (e.g., block production in Proof-of-Work systems or leader election in IBFT). These fees reward nodes for the computational power and resources they contribute to secure the network.
+\end{itemize}
+
+\subsubsection*{Fee Structure Considerations} While the specific fee structure chosen for a system can be flexible, we decided to use a fee percentage of 5\% because this is a small environment compared to the real blockchain systems. A common approach is to set the transaction fee as a percentage of the transferred value. A more balanced approach could be a fixed fee (e.g., 1 unit of the coin) for simple transactions and a variable fee based on transaction size or computational complexity for more resource-intensive operations. This aligns with the fee structure used in blockchains like Solana, where fees depend on the computational resources required for transaction processing.
+
+\subsubsection*{Fee Distribution} The collected transaction fees can be distributed in various ways. One option is to allocate them entirely to the leader node responsible for processing the block. Alternatively, a portion could be distributed among participating nodes in the consensus process, further incentivizing their involvement. In our system implementation, no node receives the fee, so the cash just "disappears". Would need to be corrected in the future.
+
+\subsubsection*{Justification and Trade-offs} 
+The chosen fee structure needs to balance several factors:
+
+\begin{itemize}
+    \item Discouraging spam requires a sufficient fee to make it economically unviable for malicious actors.
+    \item Keeping fees too low might lead to network congestion.
+    \item Setting fees too high could hinder user adoption and limit system usability.
+\end{itemize}
+
 %-------------------------------------------------------------------------------
 \section{Behavior under attack}
 %-------------------------------------------------------------------------------

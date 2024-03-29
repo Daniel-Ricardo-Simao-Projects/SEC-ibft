@@ -28,7 +28,7 @@ public class Transaction {
         this.destPubKey = Base64.getEncoder().encodeToString(destPubKey.getEncoded());
         this.destClientId = destClientId;
         this.amount = amount;
-        this.fee = amount / 10; // 10% fee
+        this.fee = amount / 20; // 5% fee
         this.valueSignature = valueSignature;
         this.signature = signature;
     }
