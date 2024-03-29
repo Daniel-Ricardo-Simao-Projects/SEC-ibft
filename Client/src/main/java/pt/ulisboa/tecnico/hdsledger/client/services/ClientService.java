@@ -47,7 +47,7 @@ public class ClientService {
         quorumSize = Math.floorDiv(nodeCount + f, 2) + 1;
     }
 
-    public boolean transfer(PublicKey source, PublicKey destination, String destId, int amount) {
+    public String transfer(PublicKey source, PublicKey destination, String destId, int amount) {
         if (config.getByzantineType().equals(ProcessConfig.ByzantineType.OVER_SPEND)) {
             System.out.println("Over spending...");
             amount += 10000;
@@ -63,11 +63,7 @@ public class ClientService {
         
         String requestTransferSerialized = new Gson().toJson(transferRequest);
         
-        if (requestAppend(requestTransferSerialized, Type.TRANSFER).equals("")) {
-            return false;
-        }
-
-        return true;
+        return requestAppend(requestTransferSerialized, Type.TRANSFER);
     }
 
     public int checkBalance(PublicKey publicKey) {

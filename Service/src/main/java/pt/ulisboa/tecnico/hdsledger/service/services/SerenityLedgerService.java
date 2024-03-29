@@ -9,6 +9,8 @@ import pt.ulisboa.tecnico.hdsledger.service.models.Transaction;
 import pt.ulisboa.tecnico.hdsledger.service.models.TransactionQueue;
 import pt.ulisboa.tecnico.hdsledger.utilities.Authenticate;
 import pt.ulisboa.tecnico.hdsledger.utilities.CustomLogger;
+import pt.ulisboa.tecnico.hdsledger.utilities.ErrorMessage;
+import pt.ulisboa.tecnico.hdsledger.utilities.HDSSException;
 import pt.ulisboa.tecnico.hdsledger.utilities.ProcessConfig;
 import pt.ulisboa.tecnico.hdsledger.service.models.Account;
 import pt.ulisboa.tecnico.hdsledger.service.state.Block;
@@ -101,38 +103,38 @@ public class SerenityLedgerService implements UDPService {
         Account sourceAccount = service.getLedger().getAccounts().get(request.getSenderId());
         if (sourceAccount == null) {
             LOGGER.log(Level.WARNING, "Source account not found");
-            return false;
+            throw new HDSSException(ErrorMessage.SourceAccountNotFound);
         }
         Account destAccount = service.getLedger().getAccounts().get(transferRequest.getDestClientId());
         if (destAccount == null) {
             LOGGER.log(Level.WARNING, "Destination account not found");
-            return false;
+            throw new HDSSException(ErrorMessage.DestinationAccountNotFound);
         }
 
         // Check if the signature is valid
         if (!Authenticate.verifyDigitalSignature(request.getStringToAppend(), request.getSignature(), sourcePubKey)) {
             LOGGER.log(Level.WARNING, "Invalid signature");
-            return false;
+            throw new HDSSException(ErrorMessage.InvalidSignature);
         }
 
         if (transferRequest.getSourcePubKey().equals(transferRequest.getDestPubKey())) {
             LOGGER.log(Level.WARNING, "Source and destination accounts are the same, not allowed");
-            return false;
+            throw new HDSSException(ErrorMessage.SameSourceAndDestination);
         }
 
         if (transferRequest.getAmount() <= 0) {
             LOGGER.log(Level.WARNING, "Invalid amount");
-            return false;
+            throw new HDSSException(ErrorMessage.InvalidAmount);
         }
 
         if (!sourcePubKey.equals(Authenticate.readPublicKey("../Utilities/keys/" + request.getSenderId() + "Pub.key"))) {
             LOGGER.log(Level.WARNING, "The public key does not match the sender's public key");
-            return false;
+            throw new HDSSException(ErrorMessage.PublicKeyMismatch);
         }
 
         if (sourceAccount.getBalance() < transferRequest.getAmount() + transferRequest.getAmount() / 10) {
             LOGGER.log(Level.WARNING, "Insufficient funds");
-            return false;
+            throw new HDSSException(ErrorMessage.InsufficientFunds);
         }
         
         return true;
@@ -159,8 +161,10 @@ public class SerenityLedgerService implements UDPService {
                                                     nodeId, request.getStringToAppend(),
                                                     message.getSenderId()));
 
-                                    if (!verifyTransfer(request)) {
-                                        link.send(message.getSenderId(), new AppendResponse(Message.Type.APPEND_RESPONSE, nodeId, request.getRequestId(), ""));
+                                    try {
+                                        verifyTransfer(request);
+                                    } catch (HDSSException e) {
+                                        link.send(message.getSenderId(), new AppendResponse(Message.Type.APPEND_RESPONSE, nodeId, request.getRequestId(), e.getMessage()));
                                         return;
                                     }
                                     CompletableFuture<AppendResponse> responseFuture = callConsensusInstance(request);

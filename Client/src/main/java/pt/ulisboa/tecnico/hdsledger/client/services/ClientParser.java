@@ -43,12 +43,8 @@ public class ClientParser {
                                     .readPublicKey("../Utilities/keys/" + clientId + "Pub.key");
                             PublicKey dest = Authenticate
                                     .readPublicKey("../Utilities/keys/" + destination + "Pub.key");
-                            boolean check = clientService.transfer(source, dest, destination, amount);
-                            if (check) {
-                                System.out.println("Transfer successfully");
-                            } else {
-                                System.out.println("Transfer failed");
-                            }
+                            String returnMessage = clientService.transfer(source, dest, destination, amount);
+                            System.out.println(returnMessage);
                         } catch (Exception e) {
                             System.out.println("Error reading keys: " + e);
                         }
