@@ -133,10 +133,10 @@ This layered architecture promotes modularity and separation of concerns. Each l
 This section highlights some key implementation aspects of our system:
 
 \subsection{IBFT}
-We leverage the Istanbul BFT (IBFT) protocol for consensus, accordingly to the official IBFT paper \cite{ibft-paper}, ensuring fault tolerance even in the presence of Byzantine failures (nodes exhibiting arbitrary behavior). The implementation has been thoroughly reviewed and corrected since the initial stages of the project.
+We leverage the Istanbul BFT (IBFT) protocol for consensus, accordingly to the official IBFT paper \cite{ibft-paper}, ensuring fault tolerance even in the presence of Byzantine failures (nodes exhibiting arbitrary behavior). The implementation has been thoroughly reviewed and corrected since the first stage of the project, having the Round Change mechanism totally implemented and a mechanism to synchronize nodes that are behind the others.
 
 \subsection{Triggered Consensus}
-The IBFT protocol execution is optimized to initiate only when a specific number (X) of requests are queued. This reduces unnecessary consensus rounds and improves system efficiency. During the commit phase upon reaching a "DECIDE" state, the participating nodes process the requests accumulated in the queu, by removing them from the queue and executing them.
+The IBFT protocol execution is optimized to initiate only when a specific number (X) of requests are queued. This number can be changed in the TransactionQueue class in the blockSize attribute (2 is the default size). This reduces unnecessary consensus rounds and improves system efficiency. During the commit phase upon reaching a "DECIDE" state, the participating nodes process the requests accumulated in the queue, by removing them from the queue and executing them.
 
 \subsection{Parallel Consensus}
 Our system enables concurrent execution of multiple IBFT consensus instances. However, to maintain data consistency, ongoing instance Y waits for the completion of instance X (where X precedes Y) if transactions within Y depend on the outcome of transactions in X. This parallel execution can introduce potential complexities if such dependencies exist between concurrently processed requests. 
