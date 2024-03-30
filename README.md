@@ -72,6 +72,7 @@ To run the script you need to have `python3` installed.
 The script has arguments which can be modified:
 
 - `terminal` - the terminal emulator used by the script
+- `client_config` - a string from the array `client_configs` which contains the possible configurations for the clients
 - `server_config` - a string from the array `server_configs` which contains the possible configurations for the blockchain nodes
 
 Run the script with the following command:
@@ -84,7 +85,14 @@ Note: You may need to install **kitty** in your computer
 
 ## Tests
 
-After running the script 'puppet-master.py' you will be prompted to choose a test to run. The tests are:
+After running the script 'puppet-master.py' you will be prompted to choose a test to run. For the clients the tests are:
+
+1. **Regular** - A regular test with no faults
+2. **Over Spend** - Clients attempted to spend more money than their account balance.
+3. **Over Access** Clients attempted to transfer funds from one account to itself disguised as another account.
+4. **Double Spend** - Clients tried to spend the same funds twice.
+
+For the server the tests are:
 
 1. **Regular** - A regular test with no faults
 2. **Fake Leader** - A test where one of the nodes is a fake leader
@@ -124,4 +132,5 @@ mvn compile exec:java -Dexec.args="..."
 ```
 
 ---
+
 This codebase was adapted from last year's project solution, which was kindly provided by the following group: [David Belchior](https://github.com/DavidAkaFunky), [Diogo Santos](https://github.com/DiogoSantoss), [Vasco Correia](https://github.com/Vaascoo). We thank all the group members for sharing their code.
