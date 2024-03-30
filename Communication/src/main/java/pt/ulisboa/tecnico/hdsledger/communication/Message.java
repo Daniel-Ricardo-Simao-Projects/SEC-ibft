@@ -14,7 +14,7 @@ public class Message implements Serializable {
     private byte[] mac = null;
 
     public enum Type {
-        APPEND, PRE_PREPARE, PREPARE, COMMIT, ROUND_CHANGE, ACK, IGNORE, APPEND_RESPONSE, TRANSFER, BALANCE;
+        APPEND, PRE_PREPARE, PREPARE, COMMIT, ROUND_CHANGE, CATCHUP, ACK, IGNORE, APPEND_RESPONSE, TRANSFER, BALANCE;
     }
 
     public Message(String senderId, Type type) {

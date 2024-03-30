@@ -342,6 +342,14 @@ public class MessageBucket {
         return roundMessages.values().stream().collect(Collectors.toList());
     }
 
+    public List<ConsensusMessage> getCommitMessages(int instance, int round) {
+        // get all messages from the bucket with the given instance and round
+        Map<String, ConsensusMessage> roundMessages = bucket.get(instance).get(round);
+
+        // return the list of consensus messages
+        return roundMessages.values().stream().collect(Collectors.toList());
+    }
+
 
     public Map<String, ConsensusMessage> getMessages(int instance, int round) {
         return bucket.get(instance).get(round);

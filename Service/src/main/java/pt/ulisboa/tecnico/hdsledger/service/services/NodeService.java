@@ -2,10 +2,7 @@ package pt.ulisboa.tecnico.hdsledger.service.services;
 
 import java.io.IOException;
 import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
@@ -515,6 +512,36 @@ public class NodeService implements UDPService {
         }
     }
 
+    public synchronized void uponCatchUp(ConsensusMessage message) {
+        int consensusInstance = message.getConsensusInstance();
+        int round = message.getRound();
+
+        CatchUpMessage catchUpMessage = message.deserializeCatchUpMessage();
+
+        // Put the received commit messages in the commitMessages bucket
+        for (ConsensusMessage commitMessage : catchUpMessage.getCommitMessages()) {
+            commitMessages.addMessage(commitMessage);
+        }
+
+        Optional<String> commitValue = commitMessages.hasValidCommitQuorum(config.getId(),
+                consensusInstance, round);
+
+        if (commitValue.isPresent()) {
+            // send to itself
+            ConsensusMessage m = new ConsensusMessageBuilder(config.getId(), Message.Type.COMMIT)
+                    .setConsensusInstance(consensusInstance)
+                    .setRound(round)
+                    .setMessage(commitValue.get())
+                    .build();
+
+            // Sign message
+            byte[] signature = Authenticate.signData(m.toString(), "../Utilities/keys/" + config.getId() + "Priv.key");
+            m.setDigitalSignature(signature);
+
+            link.send(config.getId(), m);
+        }
+    }
+
     public synchronized void uponRoundChange(ConsensusMessage message) {
 
         int consensusInstance = message.getConsensusInstance();
@@ -523,6 +550,32 @@ public class NodeService implements UDPService {
         LOGGER.log(Level.INFO,
                 MessageFormat.format("{0} - Received ROUND CHANGE message from {1}: Consensus Instance {2}, Round {3}",
                         config.getId(), message.getSenderId(), consensusInstance, round));
+
+        // If receive a round change message from an already decided consensus instance
+        if (consensusInstance <= lastDecidedConsensusInstance.get()) {
+
+            LOGGER.log(Level.INFO,
+                    MessageFormat.format("{0} - Received ROUND CHANGE message for decided consensus instance {1}, " +
+                                    "sending the decided value of the instance", config.getId(), consensusInstance));
+
+            InstanceInfo instance = this.instanceInfo.get(consensusInstance);
+
+            List<ConsensusMessage> commitMessages = this.commitMessages.getCommitMessages(consensusInstance, instance.getCommittedRound());
+
+            ConsensusMessage m = new ConsensusMessageBuilder(config.getId(), Message.Type.CATCHUP)
+                    .setConsensusInstance(consensusInstance)
+                    .setRound(instance.getCommittedRound())
+                    .setMessage(new CatchUpMessage(commitMessages).toJson())
+                    .build();
+
+            // Sign message
+            byte[] signature = Authenticate.signData(m.toString(), "../Utilities/keys/" + config.getId() + "Priv.key");
+            m.setDigitalSignature(signature);
+
+            link.send(message.getSenderId(), m);
+
+            return;
+        }
 
         roundChangeMessages.addMessage(message);
 
@@ -758,6 +811,9 @@ public class NodeService implements UDPService {
 
                                 case ROUND_CHANGE ->
                                     uponRoundChange((ConsensusMessage) message);
+
+                                case CATCHUP ->
+                                    uponCatchUp((ConsensusMessage) message);
 
                                 case ACK ->
                                     LOGGER.log(Level.INFO, MessageFormat.format("{0} - Received ACK message from {1}",
