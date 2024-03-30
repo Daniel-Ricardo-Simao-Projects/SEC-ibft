@@ -102,9 +102,10 @@
 %-------------------------------------------------------------------------------
 \begin{abstract}
 %-------------------------------------------------------------------------------
-DO ABSTRACT ONLY IF WE HAVE SPACE FOR IT
-\end{abstract}
 
+This report describes HDS Serenity (HDS2), a permissioned blockchain designed for secure financial transactions.  Section 1 details the system's core design principles. Section 2 explores the key implementation aspects that contribute to HDS2's dependability. Finally, Section 3 presents a experimental evaluation demonstrating the system's effectiveness in handling Byzantine faults.
+
+\end{abstract}
 
 %-------------------------------------------------------------------------------
 \section{System Design Overview}
@@ -136,7 +137,7 @@ This section highlights some key implementation aspects of our system:
 We leverage the Istanbul BFT (IBFT) protocol for consensus, accordingly to the official IBFT paper \cite{ibft-paper}, ensuring fault tolerance even in the presence of Byzantine failures (nodes exhibiting arbitrary behavior). The implementation has been thoroughly reviewed and corrected since the first stage of the project, having the Round Change mechanism totally implemented and a mechanism to synchronize nodes that are behind the others.
 
 \subsection{Triggered Consensus}
-The IBFT protocol execution is optimized to initiate only when a specific number (X) of requests are queued. This number can be changed in the TransactionQueue class in the blockSize attribute (2 is the default size). This reduces unnecessary consensus rounds and improves system efficiency. During the commit phase upon reaching a "DECIDE" state, the participating nodes process the requests accumulated in the queue, by removing them from the queue and executing them.
+The IBFT protocol execution is optimized to initiate only when a specific number (X) of requests are queued. This number can be changed in the TransactionQueue class in the blockSize attribute (5 is the default size). This reduces unnecessary consensus rounds and improves system efficiency. During the commit phase upon reaching a "DECIDE" state, the participating nodes process the requests accumulated in the queue, by removing them from the queue and executing them.
 
 \subsection{Parallel Consensus}
 Our system enables concurrent execution of multiple IBFT consensus instances. However, to maintain data consistency, ongoing instance Y waits for the completion of instance X (where X precedes Y) if transactions within Y depend on the outcome of transactions in X. This parallel execution can introduce potential complexities if such dependencies exist between concurrently processed requests. 
@@ -195,24 +196,27 @@ We leveraged the configuration JSON file to introduce Byzantine behavior. Both c
 
 \subsection{Client-side Byzantine Faults} We explored various client-side Byzantine behaviors, including:
     \begin{itemize}
-        \item Arbitrary spending: Clients attempted to spend more money than their account balance.
-        \item Double spending: Clients tried to spend the same funds twice.
-        \item Self-payment: Clients attempted to transfer funds from one account to itself disguised as another account.
+        \item \textbf{Arbitrary spending}: Clients attempted to spend more money than their account balance.
+        \item \textbf{Double spending}: Clients tried to spend the same funds twice.
+        \item \textbf{Self-payment}: Clients attempted to transfer funds from one account to itself disguised as another account.
     \end{itemize}
 
 For all these scenarios, our system successfully prevented the malicious client from manipulating the ledger, ensuring overall system correctness. Most client-side Byzantine fault tests were conducted with two clients, as we deemed this sufficient to cover various attack vectors.
 
 \subsection{Server-side Byzantine Faults} We investigated a broader range of Byzantine behaviors for servers/nodes. Most tests involved a system with four nodes, allowing for a maximum of one faulty node. The explored server-side Byzantine behaviors included:
     \begin{itemize}
-        \item Forged leadership: A node falsely claimed to be the leader, attempting to disrupt the consensus process.
-        \item Value alteration: Nodes tampered with the consensus value within messages.
-        \item Message spoofing: Nodes impersonated other nodes to trick the system into accepting fabricated messages and achieve a quorum.
-        \item Incorrect value transmission: Nodes deliberately sent wrong values to users.
+        \item \textbf{Forged leadership}: A node falsely claimed to be the leader, attempting to disrupt the consensus process.
+        \item \textbf{Value alteration}: Nodes tampered with the consensus value within messages.
+        \item \textbf{Message spoofing}: Nodes impersonated other nodes to trick the system into accepting fabricated messages and achieve a quorum.
+        \item \textbf{Incorrect value transmission}: Nodes deliberately sent wrong values to users.
+        \item \textbf{Byzantine Broadcast}: A Byzantine leader sent different values to different nodes during the consensus process, attempting to create inconsistencies in the system state.
     \end{itemize}
 
 Our system successfully reached consensus in all server-side Byzantine fault tests. However, a significant performance difference was observed between scenarios requiring "Round Changes" and those that did not. Round Changes, a mechanism to maintain system liveness under faults, substantially increased the time required to reach consensus. While this ensures system progress even in challenging situations, it comes at the cost of reduced efficiency.
 
 \subsection{Discussion}
+
+For all test scenarios, our system successfully prevented malicious actors (both clients and servers) from manipulating the ledger, ensuring overall system correctness. We employed a mixed approach, running tests with various combinations of Byzantine client and server behaviors. The system consistently achieved consensus and maintained a valid system state regardless of the specific Byzantine behavior combination.
 
 The experimental evaluation demonstrates the effectiveness of our system in handling various Byzantine faults from both clients and servers. The system successfully prevented malicious actors from manipulating the ledger and disrupting overall system operation. The observed performance impact of Round Changes highlights a trade-off between liveness and efficiency, which can be further optimized in future iterations.
 
