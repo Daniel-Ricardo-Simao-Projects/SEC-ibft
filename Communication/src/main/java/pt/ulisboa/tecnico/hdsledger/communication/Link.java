@@ -146,7 +146,7 @@ public class Link {
                         break;
 
                     sleepTime <<= 1;
-                    if (sleepTime > TIMEOUT) { // TODO save time as a variable
+                    if (sleepTime > TIMEOUT) {
                         stopSending = true;
                         break;
                     }

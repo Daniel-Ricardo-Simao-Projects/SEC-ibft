@@ -17,7 +17,7 @@ have the same state.
 
 ---
 
-# Configuration Files
+## Configuration Files
 
 ### Node configuration
 
@@ -31,7 +31,7 @@ Can be found inside the `resources/` folder of the `Service` module.
     "port": <NODE_PORT>,
     "clientPort": <CLIENT_PORT>,
     "bizantineType": <BIZANTINE_TYPE>,
-    "messageDelay": <MESSAGE_DELAY>,
+    "messageDelay": <MESSAGE_DELAY>
 }
 ```
 
@@ -44,6 +44,7 @@ Can be found inside the `resources/` folder of the `Client` module.
     "id": <CLIENT_ID>,
     "hostname": "localhost",
     "port": <NODE_PORT>,
+    "byzantineType": <BIZANTINE_TYPE>
 }
 ```
 
@@ -63,7 +64,7 @@ This should install the following dependencies:
 
 ## Puppet Master
 
-The puppet master is a python script `puppet-master.py` which is responsible for creating keys for all the processes 
+The puppet master is a python script `puppet-master.py` which is responsible for creating keys for all the processes
 (clients and nodes) and starting the nodes of the blockchain.
 The script runs with `kitty` terminal emulator by default since it's installed on the RNL labs.
 
@@ -78,17 +79,21 @@ Run the script with the following command:
 ```bash
 python3 puppet-master.py
 ```
+
 Note: You may need to install **kitty** in your computer
 
 ## Tests
 
 After running the script 'puppet-master.py' you will be prompted to choose a test to run. The tests are:
+
 1. **Regular** - A regular test with no faults
 2. **Fake Leader** - A test where one of the nodes is a fake leader
 3. **Message Delay** - A test where all the nodes have different message delays
 4. **Leader Delay** - A test where the leader has a message delay, and as consequence, there is a round change
 5. **Round Change with Previous Prepare** - A test to check if the system can handle a round change when there was already a prepare message from some nodes
 6. **Leader with fake signature** - A test to check if the nodes verify signatures from received messages
+7. **Fake Balance Response** - A test to check if the client ignores a fake balance response from a bizantine node
+8. **Byzantine Broadcast** - A test to send different order of transactions to each node during the consensus process, attempting to create inconsistencies in the system state
 
 ## Maven
 
@@ -98,7 +103,7 @@ It's also possible to run the project manually by using Maven.
 
 Compile and install all modules using:
 
-```
+```sh
 mvn clean install
 ```
 
@@ -106,17 +111,17 @@ mvn clean install
 
 Run without arguments
 
-```
+```sh
 cd <module>/
 mvn compile exec:java
 ```
 
 Run with arguments
 
-```
+```sh
 cd <module>/
 mvn compile exec:java -Dexec.args="..."
 ```
+
 ---
 This codebase was adapted from last year's project solution, which was kindly provided by the following group: [David Belchior](https://github.com/DavidAkaFunky), [Diogo Santos](https://github.com/DiogoSantoss), [Vasco Correia](https://github.com/Vaascoo). We thank all the group members for sharing their code.
-
