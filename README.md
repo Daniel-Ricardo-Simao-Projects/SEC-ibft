@@ -103,6 +103,8 @@ For the server the tests are:
 7. **Fake Balance Response** - A test to check if the client ignores a fake balance response from a bizantine node
 8. **Byzantine Broadcast** - A test to send different order of transactions to each node during the consensus process, attempting to create inconsistencies in the system state
 
+The tests can be made mixed up. For example, you can choose to do Double Spend test on client with Leader with fake signature test on nodes.
+
 ## Maven
 
 It's also possible to run the project manually by using Maven.
