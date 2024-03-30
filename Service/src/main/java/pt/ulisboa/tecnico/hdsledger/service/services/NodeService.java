@@ -170,11 +170,26 @@ public class NodeService implements UDPService {
             LOGGER.log(Level.INFO,
                     MessageFormat.format("{0} - Node is leader, sending PRE-PREPARE message", config.getId()));
 
-            ConsensusMessage consensusMessage = this.createConsensusMessage(blockSerialized, localConsensusInstance, instance.getCurrentRound());
-            // Sign message
-            byte[] signature = Authenticate.signData(consensusMessage.toString(), "../Utilities/keys/" + config.getId() + "Priv.key");
-            consensusMessage.setDigitalSignature(signature);
-            this.link.broadcast(consensusMessage);
+            if (this.config.getByzantineType() == ByzantineType.BYZANTINE_BROADCAST) {
+                for (ProcessConfig node : nodesConfig) {
+                    Collections.shuffle(transactions);
+                    block.setTransactions(transactions);
+                    blockSerialized = new Gson().toJson(block);
+                    ConsensusMessage consensusMessage = this.createConsensusMessage(blockSerialized, localConsensusInstance, instance.getCurrentRound());
+                    // Sign message
+                    byte[] signature = Authenticate.signData(consensusMessage.toString(), "../Utilities/keys/" + config.getId() + "Priv.key");
+                    consensusMessage.setDigitalSignature(signature);
+                    this.link.send(node.getId(), consensusMessage);
+                    LOGGER.log(Level.SEVERE,
+                            MessageFormat.format("{0} - Sent PRE-PREPARE message with block: {1} to {2}", config.getId(), blockSerialized, node.getId()));
+                }
+            } else {
+                ConsensusMessage consensusMessage = this.createConsensusMessage(blockSerialized, localConsensusInstance, instance.getCurrentRound());
+                // Sign message
+                byte[] signature = Authenticate.signData(consensusMessage.toString(), "../Utilities/keys/" + config.getId() + "Priv.key");
+                consensusMessage.setDigitalSignature(signature);
+                this.link.broadcast(consensusMessage);
+            }
         } else {
             LOGGER.log(Level.INFO,
                     MessageFormat.format("{0} - Node is not leader, waiting for PRE-PREPARE message", config.getId()));

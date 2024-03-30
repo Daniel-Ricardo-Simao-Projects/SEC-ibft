@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 public class TransactionQueue {
 
-    private final int blockSize = 2;
+    private final int blockSize = 5;
 
     private final int maxSize = 10;
 

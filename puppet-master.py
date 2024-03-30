@@ -24,6 +24,7 @@ server_configs = [
     "round_change_prev_prepare.json",
     "fake_signature_leader.json",
     "fake_balance_response.json",
+    "byzantine_broadcast.json",
 ]
 
 choiceStr = input("Choose a Client configuration:\n"
@@ -44,6 +45,7 @@ choiceStr = input("Choose a Server configuration:\n"
                   "5 - Round Change With Previous Prepare\n"
                   "6 - Fake Signature Leader\n"
                   "7 - Fake Balance Response\n"
+                  "8 - Byzantine Broadcast\n"
                   ">> ")
 
 choice = int(choiceStr)
