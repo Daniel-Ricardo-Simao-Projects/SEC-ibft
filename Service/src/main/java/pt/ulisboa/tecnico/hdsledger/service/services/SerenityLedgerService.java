@@ -18,12 +18,10 @@ import pt.ulisboa.tecnico.hdsledger.service.state.Block;
 import java.io.IOException;
 import java.security.PublicKey;
 import java.text.MessageFormat;
-import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
-import java.util.concurrent.*;
 import java.util.Map;
 
 import com.google.gson.Gson;

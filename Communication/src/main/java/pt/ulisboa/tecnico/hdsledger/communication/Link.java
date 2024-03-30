@@ -37,6 +37,8 @@ public class Link {
     // Send messages to self by pushing to queue instead of through the network
     private final Queue<Message> localhostQueue = new ConcurrentLinkedQueue<>();
 
+    private final int TIMEOUT = 10000;
+
     public Link(ProcessConfig self, int port, ProcessConfig[] nodes, Class<? extends Message> messageClass) {
         this(self, port, nodes, messageClass, false, 200);
     }
@@ -144,7 +146,7 @@ public class Link {
                         break;
 
                     sleepTime <<= 1;
-                    if (sleepTime > 10000) { // TODO save time as a variable
+                    if (sleepTime > TIMEOUT) { // TODO save time as a variable
                         stopSending = true;
                         break;
                     }
