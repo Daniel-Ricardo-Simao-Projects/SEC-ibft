@@ -54,6 +54,7 @@ public class ProcessConfig {
         EQUIVOCATION,           // send different messages to different nodes
         SILENT_COMMIT,          // do not broadcast commit message
         FAKE_SIGNATURE,         // use a not recongized signature
+        FAKE_BALANCE,           // send a fake balance
         DOUBLE_SPEND,           // double spend
         OVER_ACCESS,            // access another client account
         OVER_SPEND,             // spend more than the balance

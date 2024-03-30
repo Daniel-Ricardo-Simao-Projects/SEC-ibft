@@ -200,6 +200,12 @@ public class SerenityLedgerService implements UDPService {
                                                     message.getSenderId()));
 
                                     var balance = service.getLedger().getAccounts().get(request.getSenderId()).getBalance();
+
+                                    // BYZANTINE TEST: FAKE BALANCE
+                                    if (service.getConfig().getByzantineType() == ProcessConfig.ByzantineType.FAKE_BALANCE) {
+                                        balance = balance + 567;
+                                        LOGGER.log(Level.SEVERE, "Byzantine test: Fake balance, sending: " + balance + " instead of " + service.getLedger().getAccounts().get(request.getSenderId()).getBalance());
+                                    }
                                     try {
                                         link.send(message.getSenderId(), new AppendResponse(Message.Type.APPEND_RESPONSE, nodeId, request.getRequestId(), String.valueOf(balance)));
                                     } catch (Exception e) {
